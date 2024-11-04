@@ -33,10 +33,10 @@ const VillaController = {
 
       const villas = await Villa.find(query).populate([
         {
-          path: "ulasan", // Mengambil ulasan-ulasan terkait
+          path: "ulasan",
           populate: {
-            path: "user", // Mengambil nama user yang memberikan ulasan
-            select: "nama", // Hanya menampilkan nama dari user
+            path: "user",
+            select: "nama",
           },
         },
         "pemilik_villa",
@@ -175,16 +175,13 @@ const VillaController = {
               file.filename
             }`,
             name: file.filename,
-            villa: villaId, // Menyimpan relasi ke villa
+            villa: villaId,
             filepath: file.path,
           });
           return photo._id; // Mengembalikan ID foto yang baru dibuat
         })
       );
 
-      console.log(photos, "photos");
-
-      // Temukan villa dan update field `photos` dengan ID foto yang baru
       const villa = await Villa.findByIdAndUpdate(
         villaId,
         { $push: { foto_villa: { $each: photos } } },
@@ -201,7 +198,11 @@ const VillaController = {
         data: villa,
       });
     } catch (error) {
-      res.status(500).json({ message: "Failed to upload villa images", error });
+      console.log(error);
+      res.status(500).json({
+        status: "error",
+        message: "Failed to upload villa images",
+      });
     }
   },
   getVillaImages: async (req: Request, res: Response) => {
@@ -221,14 +222,18 @@ const VillaController = {
         photos: villa.foto_villa,
       });
     } catch (error) {
-      res.status(500).json({ message: "Failed to get villa photos", error });
+      console.log(error);
+      res.status(500).json({
+        status: "error",
+        message: "Failed to get villa photos",
+      });
     }
   },
 
   deleteVillaImage: async (req: Request, res: Response) => {
     try {
-      const villaId = req.params.id; // ID villa dari parameter route
-      const photoId = req.params.photoId; // ID foto dari parameter route
+      const villaId = req.params.id;
+      const photoId = req.params.photoId;
 
       // Temukan villa dan pastikan foto ada di dalamnya
       const villa = await Villa.findById(villaId);
