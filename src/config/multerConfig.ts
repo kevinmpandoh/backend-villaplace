@@ -4,12 +4,12 @@ import path from "path";
 // Konfigurasi Multer Storage Dinamis
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    if (req.url.includes("profile")) {
-      cb(null, "./assets/img/profile"); // Folder untuk foto profil
-    } else if (req.url.includes("villa")) {
-      cb(null, "./assets/img/villa"); // Folder untuk foto villa
+    if (req.url.includes("villa")) {
+      cb(null, "./src/assets/img/villa"); // Folder untuk foto profil
+    } else if (req.url.includes("profile")) {
+      cb(null, "./src/assets/img/profile"); // Folder untuk foto villa
     } else {
-      cb(new Error("Invalid upload path!"), ""); // Jika rute tidak sesuai
+      cb(null, "./src/assets/img"); // Jika rute tidak sesuai
     }
   },
   filename: (req, file, cb) => {
