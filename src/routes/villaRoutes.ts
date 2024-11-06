@@ -1,6 +1,6 @@
 import { Router } from "express";
 import upload from "../config/multerConfig";
-
+const { verifyOwner } = require("../middleware/verifyOwner");
 const router = Router();
 const {
   getAllVillas,
@@ -13,7 +13,7 @@ const {
   deleteVillaImage,
 } = require("../controllers/villaController");
 
-router.get("/", getAllVillas);
+router.get("/", verifyOwner, getAllVillas);
 router.get("/:id", getVillaById);
 router.post("/", createVilla);
 router.put("/:id", updateVilla);
