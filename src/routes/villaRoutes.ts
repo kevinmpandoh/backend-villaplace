@@ -1,6 +1,13 @@
 import { Router } from "express";
 import upload from "../config/multerConfig";
-const { verifyOwner } = require("../middleware/verifyOwner");
+
+const {
+  verifyAdmin,
+  verifyOwner,
+  verifyUserLogin,
+  verifyOwnerLogin,
+} = require("../middleware/verifyToken");
+
 const router = Router();
 const {
   getAllVillas,
@@ -13,11 +20,12 @@ const {
   deleteVillaImage,
 } = require("../controllers/villaController");
 
-router.get("/", verifyOwner, getAllVillas);
+router.get("/", verifyUserLogin, getAllVillas);
 router.get("/:id", getVillaById);
-router.post("/", createVilla);
-router.put("/:id", updateVilla);
-router.delete("/:id", deleteVilla);
+// router.post("/", verifyOwner, verifyOwnerLogin, createVilla);
+router.post("/", verifyOwnerLogin, verifyOwner, createVilla);
+router.put("/:id", verifyOwner, updateVilla);
+router.delete("/:id", verifyAdmin, deleteVilla);
 router.post(
   "/:id/upload-villa",
   upload.array("foto_villa", 10),

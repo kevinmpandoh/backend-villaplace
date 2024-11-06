@@ -1,4 +1,9 @@
 import express from "express";
+
+const {
+  verifyUserLogin,
+  verifyOwnerLogin,
+} = require("../middleware/verifyToken");
 const route = express.Router();
 
 const {
@@ -10,7 +15,7 @@ const {
 } = require("../controllers/pesananController");
 
 route.get("/", getAllPesanan);
-route.post("/", createPesanan);
+route.post("/", verifyUserLogin, createPesanan);
 route.get("/:id", getPesananById);
 route.put("/:id", updatePesanan);
 route.delete("/:id", deletePesanan);
