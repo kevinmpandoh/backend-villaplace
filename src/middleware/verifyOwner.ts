@@ -15,8 +15,7 @@ export const verifyOwner = (
   next: NextFunction
 ) => {
   try {
-    const token = req.headers["authorization"]?.split(" ")[1]; // Ambil token dari header
-    // const token = req.cookies.tokenUser;
+    const token = req.cookies.tokenUser;
     console.log(token);
     // console.log(req.cookies);
     if (!token) {
