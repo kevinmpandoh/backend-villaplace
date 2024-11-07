@@ -3,7 +3,7 @@ import cors from "cors";
 import morgan from "morgan";
 import dotenv from "dotenv";
 import path from "path";
-
+import cookieParser from "cookie-parser";
 const router = require("./routes");
 
 // Load environment variables
@@ -12,6 +12,8 @@ dotenv.config();
 // Create Express app
 const app = express();
 
+// cookie parse
+app.use(cookieParser());
 // Middleware
 app.use(
   cors({
