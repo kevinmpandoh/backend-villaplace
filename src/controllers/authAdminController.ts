@@ -37,7 +37,6 @@ export const loginAdmin = async (
         userId: admin._id,
         nama: admin.nama,
         email: admin.email,
-        no_telepon: admin.no_telepon,
         foto_profile: admin.foto_profile,
       },
       JWT_SECRET,
