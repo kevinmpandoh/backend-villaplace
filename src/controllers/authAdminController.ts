@@ -5,6 +5,7 @@ import Admin from "../models/admin";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
+//! LOGIN ADMIN
 export const loginAdmin = async (
   req: Request,
   res: Response
@@ -14,23 +15,37 @@ export const loginAdmin = async (
 
     const admin = await Admin.findOne({ email });
     if (!admin) {
-      res
-        .status(400)
-        .json({ status: "failed", message: "Invalid credentials" });
+      res.status(400).json({
+        status: "Failed",
+        message: "Username yang anda masukan salah",
+      });
       return;
     }
 
     const isPasswordValid = await bcrypt.compare(password, admin.password);
 
     if (!isPasswordValid) {
-      res.status(400).json({ message: "Invalid credentials" });
+      res.status(400).json({
+        status: "Failed",
+        message: "Password yang anda masukan salah",
+      });
       return;
     }
 
-    const token = jwt.sign({ userId: admin._id }, JWT_SECRET, {
-      expiresIn: "1h",
-    });
-    // res.cookie("tokenUser", token);
+    const token = jwt.sign(
+      {
+        userId: admin._id,
+        nama: admin.nama,
+        email: admin.email,
+        no_telepon: admin.no_telepon,
+        foto_profile: admin.foto_profile,
+      },
+      JWT_SECRET,
+      {
+        expiresIn: "1h",
+      }
+    );
+
     res.cookie("tokenAdmin", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -50,7 +65,8 @@ export const logoutAdmin = async (
     res.clearCookie("tokenAdmin");
     // Menghapus token di klien
     res.json({
-      message: "Logout successful. Please remove your token on client-side.",
+      status: "Success",
+      message: "Logout berhasil",
     });
   } catch (error) {
     res.status(500).json({ message: "Server error during logout" });

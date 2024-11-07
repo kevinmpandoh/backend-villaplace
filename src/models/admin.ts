@@ -7,6 +7,7 @@ const adminSchema = new Schema<IAdmin>({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   no_telepon: { type: String, required: true },
+  foto_profile: { type: String, default: "default.png" },
 });
 
 export default mongoose.model<IAdmin>("Admin", adminSchema);

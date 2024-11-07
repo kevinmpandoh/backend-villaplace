@@ -19,14 +19,17 @@ export const verifyOwner = (
         message: "Anda tidak memiliki akses! ",
       });
     }
+    //! MIDDLEARE SEBELUMNYA
+    // jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
+    //   if (err) {
+    //     return res.status(401).json({ message: "Unauthorized access" });
+    //   }
 
-    jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
-      if (err) {
-        return res.status(401).json({ message: "Unauthorized access" });
-      }
-
-      next();
-    });
+    //   next();
+    // });
+    const owner = jwt.verify(token, JWT_SECRET);
+    req.body.owner = owner;
+    next();
   } catch (error) {
     console.log(error);
   }
@@ -50,13 +53,16 @@ export const verifyAdmin = (
         message: "Anda tidak memiliki akses!/ anda belom login!",
       });
     }
-
-    jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
-      if (err) {
-        return res.status(401).json({ message: "Unauthorized access" });
-      }
-      next();
-    });
+    //! MIDDLEWARE SEBELUMNYA
+    // jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
+    //   if (err) {
+    //     return res.status(401).json({ message: "Unauthorized access" });
+    //   }
+    //   next();
+    // });
+    const admin = jwt.verify(token, JWT_SECRET);
+    req.body.admin = admin;
+    next();
   } catch (error) {
     console.log(error);
   }
@@ -70,7 +76,7 @@ export const verifyUserLogin = (
   next: NextFunction
 ) => {
   try {
-    const token = req.cookies.tokenUser; // Ensure you have a token named 'tokenUser' in your cookies
+    const token = req.cookies.tokenUser;
     console.log(token);
     if (!token) {
       return res.status(403).json({
@@ -78,42 +84,17 @@ export const verifyUserLogin = (
         message: "Anda belum melakukan login!",
       });
     }
+    //! MIDDLWARE SEBELUMNYA
+    // jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
+    //   if (err) {
+    //     return res.status(401).json({ message: "Unauthorized access" });
+    //   }
 
-    jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
-      if (err) {
-        return res.status(401).json({ message: "Unauthorized access" });
-      }
-
-      next();
-    });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: "Server error during authentication" });
-  }
-};
-
-export const verifyOwnerLogin = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const token = req.cookies.tokenOwner; // Ensure you have a token named 'tokenUser' in your cookies
-    console.log(token);
-    if (!token) {
-      return res.status(403).json({
-        status: "Failed",
-        message: "Anda belum melakukan login!",
-      });
-    }
-
-    jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
-      if (err) {
-        return res.status(401).json({ message: "Unauthorized access" });
-      }
-
-      next();
-    });
+    //   next();
+    // });
+    const userLogin = jwt.verify(token, JWT_SECRET);
+    req.body.userLogin = userLogin;
+    next();
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Server error during authentication" });
