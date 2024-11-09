@@ -5,11 +5,11 @@ import path from "path";
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     if (req.url.includes("villa")) {
-      cb(null, "./src/assets/img/villa"); // Folder untuk foto profil
-    } else if (req.url.includes("profile")) {
-      cb(null, "./src/assets/img/profile"); // Folder untuk foto villa
+      cb(null, "./src/assets/img/villa"); // Folder untuk foto villa
+    } else if (req.url.includes("user")) {
+      cb(null, "./src/assets/img/profile/user"); // Folder untuk foto profile
     } else {
-      cb(null, "./src/assets/img"); // Jika rute tidak sesuai
+      cb(null, "./src/assets/img/profile/owner"); // jika owner
     }
   },
   filename: (req, file, cb) => {

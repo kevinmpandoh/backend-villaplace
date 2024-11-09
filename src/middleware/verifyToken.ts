@@ -19,19 +19,12 @@ export const verifyOwner = (
         message: "Anda tidak memiliki akses! ",
       });
     }
-    //! MIDDLEARE SEBELUMNYA
-    // jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
-    //   if (err) {
-    //     return res.status(401).json({ message: "Unauthorized access" });
-    //   }
-
-    //   next();
-    // });
     const owner = jwt.verify(token, JWT_SECRET);
     req.body.owner = owner;
     next();
   } catch (error) {
     console.log(error);
+    res.status(500).json({ message: "Server error during authentication" });
   }
 };
 
@@ -84,14 +77,6 @@ export const verifyUserLogin = (
         message: "Anda belum melakukan login!",
       });
     }
-    //! MIDDLWARE SEBELUMNYA
-    // jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
-    //   if (err) {
-    //     return res.status(401).json({ message: "Unauthorized access" });
-    //   }
-
-    //   next();
-    // });
     const userLogin = jwt.verify(token, JWT_SECRET);
     req.body.userLogin = userLogin;
     next();
@@ -100,3 +85,4 @@ export const verifyUserLogin = (
     res.status(500).json({ message: "Server error during authentication" });
   }
 };
+// ???

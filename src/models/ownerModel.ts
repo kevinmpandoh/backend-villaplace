@@ -7,7 +7,7 @@ const ownerSchema = new Schema<IOwner>({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   no_telepon: { type: String, required: true },
-  foto_profile: { type: String, default: "default.png" },
+  foto_profile: { type: String, default: "default_avatar.png" },
 });
 
 export default mongoose.model<IOwner>("Owner", ownerSchema);

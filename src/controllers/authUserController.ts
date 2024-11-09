@@ -110,4 +110,61 @@ export const logoutUser = async (
   }
 };
 
-//? BUAT 3 FILE CONTROLLER ADMIN,USER OWNER
+//! FUNCTION LOGIN JG BISA
+// export const loginUser = async (req: Request, res: Response): Promise<void> => {
+//   try {
+//     const { email, password } = req.body;
+
+//     const user = await User.findOne({ email });
+
+//     if (!user) {
+//       res.status(400).json({
+//         status: "Failed",
+//         message: "Username yang anda masukan salah",
+//       });
+//       return;
+//     }
+
+//     // Check if the password is correct
+//     const isPasswordValid = await bcrypt.compare(password, user.password);
+//     console.log("Entered password:", password);
+//     console.log("Stored hashed password:", user.password);
+
+//     if (!isPasswordValid) {
+//       res.status(400).json({
+//         status: "Failed",
+//         message: "Password yang anda masukan salah!",
+//       });
+//       return;
+//     }
+
+//     // Generate JWT and send back as cookie
+//     const token = jwt.sign(
+//       {
+//         userId: user._id,
+//         nama: user.nama,
+//         email: user.email,
+//         no_telepon: user.no_telepon,
+//         foto_profile: user.foto_profile,
+//       },
+//       JWT_SECRET,
+//       {
+//         expiresIn: "1h",
+//       }
+//     );
+
+//     // Sending JWT as cookie
+//     res.cookie("tokenUser", token, {
+//       httpOnly: true,
+//       secure: process.env.NODE_ENV === "production",
+//     });
+
+//     res.json({
+//       status: "Success",
+//       message: "Berhasil login",
+//       token,
+//     });
+//   } catch (error) {
+//     res.status(500).json({ message: "Server error" });
+//   }
+// };
