@@ -66,9 +66,49 @@ const PesananController = {
 
   createPesanan: async (req: Request, res: Response) => {
     try {
-      const newPesanan = new Pesanan(req.body);
+      // Validasi input
+      const {
+        harga,
+        jumlah_orang,
+        nama_pembayar,
+        email_pembayar,
+        catatan,
+        tanggal_mulai,
+        tanggal_selesai,
+        user,
+        villa,
+      } = req.body;
+
+      if (
+        !harga ||
+        !jumlah_orang ||
+        !nama_pembayar ||
+        !email_pembayar ||
+        !tanggal_mulai ||
+        !tanggal_selesai ||
+        !user ||
+        !villa
+      ) {
+        return res.status(400).json({
+          status: "error",
+          message: "All fields are required",
+        });
+      }
+
+      const newPesanan = new Pesanan({
+        harga,
+        jumlah_orang,
+        nama_pembayar,
+        email_pembayar,
+        catatan,
+        tanggal_mulai,
+        tanggal_selesai,
+        user,
+        villa,
+      });
       const savedPesanan = await newPesanan.save();
-      res.status(201).json({
+
+      return res.status(201).json({
         status: "success",
         message: "Pesanan created successfully",
         data: savedPesanan,
