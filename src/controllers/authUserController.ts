@@ -2,11 +2,11 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import User from "../models/user";
+import User from "../models/userModel";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
-// Fungsi untuk register user (umum)
+//! Fungsi untuk register user (umum)
 export const registerUser = async (
   req: Request,
   res: Response
@@ -14,11 +14,27 @@ export const registerUser = async (
   try {
     const { nama, email, password, no_telepon } = req.body;
 
+    if (password.length < 8) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Password harus memiliki minimal 8 karakter",
+      });
+      return;
+    }
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       res
         .status(400)
         .json({ status: "Failed", message: "Email sudah digunakan!" });
+      return;
+    }
+
+    const existingUserNotelepon = await User.findOne({ no_telepon });
+    if (existingUserNotelepon) {
+      res
+        .status(400)
+        .json({ status: "Failed", message: "No telepon sudah digunakan!" });
       return;
     }
 
@@ -41,7 +57,7 @@ export const registerUser = async (
   }
 };
 
-// Fungsi login
+//! Fungsi login
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
@@ -55,7 +71,6 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       });
       return;
     }
-    console.log(req.body.password);
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
@@ -93,7 +108,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// Fungsi logout
+//! Fungsi logout
 export const logoutUser = async (
   req: Request,
   res: Response
@@ -109,5 +124,3 @@ export const logoutUser = async (
     res.status(500).json({ message: "Server error during logout" });
   }
 };
-
-//? BUAT 3 FILE CONTROLLER ADMIN,USER OWNER

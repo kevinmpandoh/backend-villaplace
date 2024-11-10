@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import Admin from "../models/admin";
+import Admin from "../models/adminModel";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
@@ -34,7 +34,7 @@ export const loginAdmin = async (
 
     const token = jwt.sign(
       {
-        userId: admin._id,
+        adminId: admin._id,
         nama: admin.nama,
         email: admin.email,
         foto_profile: admin.foto_profile,
