@@ -4,7 +4,10 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import path from "path";
 import cookieParser from "cookie-parser";
+
 import "./schedulers/updateStatusPesanan";
+import "./schedulers/updateStatusPembayaran";
+
 const router = require("./routes");
 
 // Load environment variables
