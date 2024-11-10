@@ -19,7 +19,7 @@ router.post("/user/register", registerUser); // Untuk user biasa
 router.post("/user/login", loginUser); // Login untuk user biasa
 router.post("/user/logout", logoutUser); // Logout untuk semua pengguna
 
-//! OWNER ROUTES
+//! OWNER ROUTES AUTH
 router.post("/owner/register", registerOwner); // Register untuk owner
 router.post("/owner/login", loginOwner); // Login untuk owner
 router.post("/owner/logout", logoutOwner); // Logout untuk semua pengguna
