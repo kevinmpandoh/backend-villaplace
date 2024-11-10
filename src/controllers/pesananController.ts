@@ -66,6 +66,31 @@ const PesananController = {
 
   createPesanan: async (req: Request, res: Response) => {
     try {
+      const { villa, tanggal_mulai, tanggal_selesai } = req.body;
+
+      // Convert tanggal_mulai and tanggal_selesai to Date objects
+      const startDate = new Date(tanggal_mulai);
+      const endDate = new Date(tanggal_selesai);
+
+      // Check if there are overlapping bookings for the same Villa
+      const existingBookings = await Pesanan.find({
+        villa,
+        $or: [
+          {
+            tanggal_mulai: { $lt: endDate },
+            tanggal_selesai: { $gt: startDate },
+          },
+          { tanggal_mulai: { $gte: startDate, $lte: endDate } },
+          { tanggal_selesai: { $gte: startDate, $lte: endDate } },
+        ],
+      });
+
+      if (existingBookings.length > 0) {
+        return res.status(400).json({
+          status: "error",
+          message: "Villa is already booked for the selected dates",
+        });
+      }
       const newPesanan = new Pesanan(req.body);
       const savedPesanan = await newPesanan.save();
 
