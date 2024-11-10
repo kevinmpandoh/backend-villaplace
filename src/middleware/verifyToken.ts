@@ -11,8 +11,6 @@ export const verifyOwner = (
 ) => {
   try {
     const token = req.cookies.tokenOwner;
-    console.log(token);
-    // console.log(req.cookies);
     if (!token) {
       return res.status(403).json({
         status: "Failed",
@@ -37,21 +35,12 @@ export const verifyAdmin = (
 ) => {
   try {
     const token = req.cookies.tokenAdmin;
-    console.log(token);
-    // console.log(req.cookies);
     if (!token) {
       return res.status(403).json({
         status: "Failed",
         message: "Anda tidak memiliki akses!/ anda belom login!",
       });
     }
-    //! MIDDLEWARE SEBELUMNYA
-    // jwt.verify(token, JWT_SECRET, (err: any, decoded: any) => {
-    //   if (err) {
-    //     return res.status(401).json({ message: "Unauthorized access" });
-    //   }
-    //   next();
-    // });
     const admin = jwt.verify(token, JWT_SECRET);
     req.body.admin = admin;
     next();
@@ -69,7 +58,6 @@ export const verifyUserLogin = (
 ) => {
   try {
     const token = req.cookies.tokenUser;
-    console.log(token);
     if (!token) {
       return res.status(403).json({
         status: "Failed",

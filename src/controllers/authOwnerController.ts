@@ -26,6 +26,14 @@ export const registerOwner = async (
       });
       return;
     }
+    const existingOwnerNotelepon = await Owner.findOne({ no_telepon });
+    if (existingOwnerNotelepon) {
+      res.status(400).json({
+        status: "Failed",
+        message: "No telepon sudah digunakan!",
+      });
+      return;
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const owner = new Owner({

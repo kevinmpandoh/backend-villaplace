@@ -6,7 +6,7 @@ const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     if (req.url.includes("villa")) {
       cb(null, "./src/assets/img/villa"); // Folder untuk foto villa
-    } else if (req.url.includes("user")) {
+    } else if (req.baseUrl.includes("user")) {
       cb(null, "./src/assets/img/profile/user"); // Folder untuk foto profile
     } else {
       cb(null, "./src/assets/img/profile/owner"); // jika owner

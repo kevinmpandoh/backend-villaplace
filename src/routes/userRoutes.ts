@@ -14,7 +14,7 @@ import upload from "../config/multerConfig";
 const { verifyAdmin } = require("../middleware/verifyToken");
 //! USER ROUTES
 router.post(
-  "/user/:id/upload",
+  "/:id/upload",
   verifyUserLogin,
   upload.single("foto_profile"),
   uploadProfileImagesUser

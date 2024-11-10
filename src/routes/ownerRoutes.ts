@@ -20,7 +20,7 @@ import { changePasswordUser } from "../controllers/userController";
 
 //! OWNER ROUTES
 router.post(
-  "/user/:id/upload",
+  "/:id/upload",
   verifyUserLogin,
   upload.single("foto_profile"),
   uploadProfileImagesOwner

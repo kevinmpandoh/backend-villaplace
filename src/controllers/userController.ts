@@ -98,7 +98,6 @@ export const getUserCurrent = async (
   try {
     const userId = req.body.userLogin.userId;
     const user = await User.findById(userId, "-password"); // Exclude password field
-    console.log(req.body);
     if (!user) {
       res.status(404).json({ status: "Failed", message: "User not found" });
       return;
@@ -137,8 +136,6 @@ export const changePasswordUser = async (
 
     // Compare the current password
     const isMatch = await bcrypt.compare(currentPassword, user.password);
-    console.log("Entered password:", currentPassword);
-    console.log("Stored hashed password:", user.password);
 
     if (!isMatch) {
       res
@@ -166,14 +163,12 @@ export const changePasswordUser = async (
 export const uploadProfileImagesUser = async (req: Request, res: Response) => {
   try {
     const userId = req.params.id;
-    // const userId = req.body.userLogin.userId; // Ambil userId dari userLogin di req.body
     const foto_profile = req.file?.filename;
-    console.log(foto_profile);
     let updateData: any = { foto_profile };
     const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
       new: true,
     });
-    console.log(updatedUser);
+
     res.json({
       status: "Success",
       data: updatedUser,

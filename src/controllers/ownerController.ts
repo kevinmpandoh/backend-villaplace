@@ -99,7 +99,6 @@ export const getOwnerCurrent = async (
   try {
     const ownerId = req.body.owner.ownerId;
     const owner = await Owner.findById(ownerId, "-password");
-    console.log(req.body);
     if (!owner) {
       res.status(404).json({ status: "Failed", message: "Owner not found" });
       return;
@@ -139,8 +138,6 @@ export const changePasswordOwner = async (
 
     // Compare the current password
     const isMatch = await bcrypt.compare(currentPassword, owner.password);
-    console.log("Entered password:", currentPassword);
-    console.log("Stored hashed password:", owner.password);
 
     if (!isMatch) {
       res
@@ -166,10 +163,7 @@ export const changePasswordOwner = async (
 export const uploadProfileImagesOwner = async (req: Request, res: Response) => {
   try {
     const ownerId = req.params.id;
-    // const ownerId = req.body.ownerLogin.ownerId; // Ambil userId dari userLogin di req.body
-    console.log(ownerId);
     const foto_profile = req.file?.filename;
-    console.log(foto_profile);
     let updateData: any = { foto_profile };
     const updatedOwner = await Owner.findByIdAndUpdate(ownerId, updateData, {
       new: true,

@@ -6,7 +6,7 @@ import User from "../models/userModel";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
-// Fungsi untuk register user (umum)
+//! Fungsi untuk register user (umum)
 export const registerUser = async (
   req: Request,
   res: Response
@@ -30,6 +30,14 @@ export const registerUser = async (
       return;
     }
 
+    const existingUserNotelepon = await User.findOne({ no_telepon });
+    if (existingUserNotelepon) {
+      res
+        .status(400)
+        .json({ status: "Failed", message: "No telepon sudah digunakan!" });
+      return;
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({
       nama,
@@ -49,7 +57,7 @@ export const registerUser = async (
   }
 };
 
-// Fungsi login
+//! Fungsi login
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
@@ -63,7 +71,6 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       });
       return;
     }
-    console.log(req.body.password);
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
@@ -101,7 +108,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-// Fungsi logout
+//! Fungsi logout
 export const logoutUser = async (
   req: Request,
   res: Response
@@ -117,62 +124,3 @@ export const logoutUser = async (
     res.status(500).json({ message: "Server error during logout" });
   }
 };
-
-//! FUNCTION LOGIN JG BISA
-// export const loginUser = async (req: Request, res: Response): Promise<void> => {
-//   try {
-//     const { email, password } = req.body;
-
-//     const user = await User.findOne({ email });
-
-//     if (!user) {
-//       res.status(400).json({
-//         status: "Failed",
-//         message: "Username yang anda masukan salah",
-//       });
-//       return;
-//     }
-
-//     // Check if the password is correct
-//     const isPasswordValid = await bcrypt.compare(password, user.password);
-//     console.log("Entered password:", password);
-//     console.log("Stored hashed password:", user.password);
-
-//     if (!isPasswordValid) {
-//       res.status(400).json({
-//         status: "Failed",
-//         message: "Password yang anda masukan salah!",
-//       });
-//       return;
-//     }
-
-//     // Generate JWT and send back as cookie
-//     const token = jwt.sign(
-//       {
-//         userId: user._id,
-//         nama: user.nama,
-//         email: user.email,
-//         no_telepon: user.no_telepon,
-//         foto_profile: user.foto_profile,
-//       },
-//       JWT_SECRET,
-//       {
-//         expiresIn: "1h",
-//       }
-//     );
-
-//     // Sending JWT as cookie
-//     res.cookie("tokenUser", token, {
-//       httpOnly: true,
-//       secure: process.env.NODE_ENV === "production",
-//     });
-
-//     res.json({
-//       status: "Success",
-//       message: "Berhasil login",
-//       token,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
