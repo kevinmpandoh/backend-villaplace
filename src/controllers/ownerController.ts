@@ -91,6 +91,28 @@ export const deleteOwnerById = async (
   }
 };
 
+//! CURRENT OWNER
+export const getOwnerCurrent = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const ownerId = req.body.owner.ownerId;
+    const owner = await Owner.findById(ownerId, "-password");
+    console.log(req.body);
+    if (!owner) {
+      res.status(404).json({ status: "Failed", message: "Owner not found" });
+      return;
+    }
+    res.json({
+      status: "Success",
+      data: owner,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
 //! CHANGE PASSWORD OWNER
 
 export const changePasswordOwner = async (
@@ -99,7 +121,15 @@ export const changePasswordOwner = async (
 ): Promise<void> => {
   try {
     const { currentPassword, newPassword } = req.body;
-    const ownerId = req.body.ownerLogin.ownerId; // Ambil userId dari userLogin di req.body
+    // Validasi panjang password
+    if (newPassword.length < 8) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Password harus memiliki minimal 8 karakter",
+      });
+      return;
+    }
+    const ownerId = req.body.owner.ownerId; // Ambil userId dari userLogin di req.body
     const owner = await Owner.findById(ownerId);
 
     if (!owner) {

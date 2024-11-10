@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import User from "../models/user";
+import User from "../models/userModel";
 import bcrypt from "bcrypt";
 import jwt, { JwtPayload } from "jsonwebtoken";
 // import user from "../models/user";
@@ -119,6 +119,14 @@ export const changePasswordUser = async (
 ): Promise<void> => {
   try {
     const { currentPassword, newPassword } = req.body;
+    // Validasi panjang password
+    if (newPassword.length < 8) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Password harus memiliki minimal 8 karakter",
+      });
+      return;
+    }
     const userId = req.body.userLogin.userId; // Ambil userId dari userLogin di req.body
     const user = await User.findById(userId);
 

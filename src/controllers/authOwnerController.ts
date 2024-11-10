@@ -11,9 +11,15 @@ export const registerOwner = async (
 ): Promise<void> => {
   try {
     const { nama, email, password, no_telepon } = req.body;
-
-    const existingUser = await Owner.findOne({ email });
-    if (existingUser) {
+    if (password.length < 8) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Password harus memiliki minimal 8 karakter",
+      });
+      return;
+    }
+    const existingOwner = await Owner.findOne({ email });
+    if (existingOwner) {
       res.status(400).json({
         status: "Failed",
         message: "Email sudah digunakan!",
@@ -69,7 +75,7 @@ export const loginOwner = async (
 
     const token = jwt.sign(
       {
-        userId: owner._id,
+        ownerId: owner._id,
         nama: owner.nama,
         email: owner.email,
         no_telepon: owner.no_telepon,

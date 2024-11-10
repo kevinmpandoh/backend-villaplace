@@ -2,7 +2,7 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import User from "../models/user";
+import User from "../models/userModel";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
@@ -13,6 +13,14 @@ export const registerUser = async (
 ): Promise<void> => {
   try {
     const { nama, email, password, no_telepon } = req.body;
+
+    if (password.length < 8) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Password harus memiliki minimal 8 karakter",
+      });
+      return;
+    }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {

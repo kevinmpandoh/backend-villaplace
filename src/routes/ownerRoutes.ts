@@ -5,6 +5,7 @@ import {
   deleteOwnerById,
   getAllOwners,
   getOwnerById,
+  getOwnerCurrent,
   updateOwnerById,
   uploadProfileImagesOwner,
 } from "../controllers/ownerController";
@@ -15,7 +16,7 @@ const {
 } = require("../middleware/verifyToken");
 
 import upload from "../config/multerConfig";
-import { changePasswordUser } from "../controllers/user-controller";
+import { changePasswordUser } from "../controllers/userController";
 
 //! OWNER ROUTES
 router.post(
@@ -25,10 +26,11 @@ router.post(
   uploadProfileImagesOwner
 );
 router.get("/", verifyOwner, getAllOwners);
+router.put("/change-password", verifyOwner, changePasswordOwner);
+router.get("/current-owner", verifyOwner, getOwnerCurrent);
 router.get("/:id", getOwnerById);
 router.put("/:id", updateOwnerById);
 router.delete("/:id", verifyAdmin, deleteOwnerById);
-router.put("/change/:id", verifyOwner, changePasswordOwner);
 router.post(
   "/owner/:id/upload",
   verifyOwner,
