@@ -1,14 +1,18 @@
 const cron = require("node-cron");
 import { Pembayaran } from "../models/pembayaranModel";
 import { Pesanan } from "../models/pesananModel";
-import { midtransClientConfig } from "../config/midtransClient";
+const midtransClient = require("midtrans-client");
+// import { midtransClientConfig } from "../config/midtransClient";
 
 cron.schedule("* * * * *", async () => {
   try {
-    console.log("Checking for pending payments...");
-
     const pendingPayments = await Pembayaran.find({
       status_pembayaran: { $in: ["pending", "in-progress"] },
+    });
+
+    const midtransClientConfig = new midtransClient.Snap({
+      isProduction: false,
+      serverKey: process.env.MIDTRANS_SERVER_KEY,
     });
 
     for (const payment of pendingPayments) {

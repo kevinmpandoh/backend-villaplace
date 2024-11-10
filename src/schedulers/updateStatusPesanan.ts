@@ -3,7 +3,7 @@ import { Pesanan } from "../models/pesananModel";
 import { Pembayaran } from "../models/pembayaranModel";
 
 // Menjadwalkan cron job untuk berjalan setiap hari pada tengah malam
-cron.schedule("0 0 * * *", async () => {
+cron.schedule("* * * * *", async () => {
   try {
     const now = new Date();
     const pesananToUpdate = await Pesanan.find({
