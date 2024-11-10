@@ -1,9 +1,6 @@
 import { Request, Response } from "express";
 import { Pembayaran } from "../models/pembayaranModel";
-import { Pesanan } from "../models/pesananModel";
-
 const midtransClient = require("midtrans-client");
-const cron = require("node-cron");
 
 const PembayaranController = {
   getAllPembayaran: async (req: Request, res: Response) => {
@@ -149,6 +146,7 @@ const PembayaranController = {
         isProduction: false,
         serverKey: process.env.MIDTRANS_SERVER_KEY,
       });
+
       const parameter = {
         transaction_details: {
           order_id: kode_pembayaran,
@@ -162,6 +160,7 @@ const PembayaranController = {
           email: email_pembayar,
         },
       };
+
       const transaction = await snap.createTransaction(parameter);
       res.status(201).json({
         status: "success",

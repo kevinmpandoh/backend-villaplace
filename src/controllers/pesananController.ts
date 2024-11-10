@@ -68,7 +68,8 @@ const PesananController = {
     try {
       const newPesanan = new Pesanan(req.body);
       const savedPesanan = await newPesanan.save();
-      res.status(201).json({
+
+      return res.status(201).json({
         status: "success",
         message: "Pesanan created successfully",
         data: savedPesanan,
