@@ -9,7 +9,10 @@ const adminSchema = new Schema<IAdmin>({
     type: String,
     required: true,
   },
-  foto_profile: { type: String, default: "default.png" },
+  foto_profile: { type: String, default: "/assets/img/default_avatar/PP_MALE.png" },
+},
+{
+  timestamps: true,
 });
 
-export default mongoose.model<IAdmin>("Admin", adminSchema);
+export const Admin = mongoose.model<IAdmin>("Admin", adminSchema);
