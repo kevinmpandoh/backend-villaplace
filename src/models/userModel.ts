@@ -14,6 +14,9 @@ const UserSchema: Schema = new Schema({
     type: String,
     default: "/assets/img/default_avatar/PP_MALE.png",
   },
+},
+{
+  timestamps: true,
 });
 
 export default mongoose.model<IUser>("User", UserSchema);

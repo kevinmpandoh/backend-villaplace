@@ -13,6 +13,7 @@ const {
   uploadVillaImages,
   getVillaImages,
   deleteVillaImage,
+  updateVillaStatus,
 } = require("../controllers/villaController");
 
 router.get("/", getAllVillas);
@@ -27,5 +28,6 @@ router.post(
 );
 router.get("/:id/photos", getVillaImages);
 router.delete("/:id/photos/:photoId", deleteVillaImage);
+router.patch("/:id/change-status", verifyAdmin, updateVillaStatus);
 
 module.exports = router;

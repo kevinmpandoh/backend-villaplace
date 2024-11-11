@@ -9,6 +9,5 @@ export interface IVilla extends Document {
   harga: number;
   foto_villa: Schema.Types.ObjectId[]; // Relasi ke foto-foto villa
   pemilik_villa: Schema.Types.ObjectId; // Relasi ke user sebagai pemilik villa
-  ulasan: Schema.Types.ObjectId[]; // Relasi ke ulasan-ulasan villa
-  pesanan: Schema.Types.ObjectId[]; // Relasi ke pesanan-pesanan villa
+  status: string;
 }
