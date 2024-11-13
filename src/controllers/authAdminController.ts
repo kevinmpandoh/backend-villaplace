@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import {Admin} from "../models/adminModel";
+import { Admin } from "../models/adminModel";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
@@ -17,7 +17,7 @@ export const loginAdmin = async (
     if (!admin) {
       res.status(400).json({
         status: "Failed",
-        message: "Username yang anda masukan salah",
+        message: "Email yang anda masukan salah",
       });
       return;
     }
