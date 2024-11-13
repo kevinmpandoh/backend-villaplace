@@ -53,17 +53,45 @@ export const updateUserById = async (
     const { nama, email, no_telepon } = req.body;
     let updateData: any = { nama, email, no_telepon };
 
-    const updatedUser = await User.findByIdAndUpdate(id, updateData, {
-      new: true,
-    });
-    if (!updatedUser) {
-      res.status(404).json({ status: "Failed", message: "User not found" });
-      return;
+    //! Cek apakah email, no_telepon, atau nama sudah digunakan oleh user lain
+    const existingUserWithEmail =
+      email && (await User.findOne({ email, _id: { $ne: id } }));
+    const existingUserWithPhone =
+      no_telepon && (await User.findOne({ no_telepon, _id: { $ne: id } }));
+    const existingUserWithName =
+      nama && (await User.findOne({ nama, _id: { $ne: id } }));
+
+    if (existingUserWithEmail) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Email sudah digunakan oleh user lain",
+      });
+    } else if (existingUserWithPhone) {
+      res.status(400).json({
+        status: "Failed",
+        message: "No telepon sudah digunakan oleh user lain",
+      });
+    } else if (existingUserWithName) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Nama sudah digunakan oleh user lain",
+      });
+    } else {
+      const updatedUser = await User.findByIdAndUpdate(id, updateData, {
+        new: true,
+      });
+      if (!updatedUser) {
+        res.status(404).json({
+          status: "Failed",
+          message: "User tidak ada",
+        });
+        return;
+      }
+      res.json({
+        status: "Success",
+        data: updatedUser,
+      });
     }
-    res.json({
-      status: "Success",
-      data: updatedUser,
-    });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }

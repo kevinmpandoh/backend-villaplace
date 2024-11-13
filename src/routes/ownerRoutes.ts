@@ -21,7 +21,7 @@ import { changePasswordUser } from "../controllers/userController";
 //! OWNER ROUTES
 router.post(
   "/:id/upload",
-  verifyUserLogin,
+  verifyOwner,
   upload.single("foto_profile"),
   uploadProfileImagesOwner
 );
