@@ -14,6 +14,33 @@ export const registerUser = async (
   try {
     const { nama, email, password, no_telepon } = req.body;
 
+    // validasi jika user tidak mengisi field yang sudah di sediakan
+    if (!nama) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Nama harus di isi!",
+      });
+      return;
+    } else if (!email) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Email harus di isi!",
+      });
+      return;
+    } else if (!password) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Passoword harus di isi!",
+      });
+      return;
+    } else if (!no_telepon) {
+      res.status(400).json({
+        status: "Failed",
+        message: "No telepon harus di isi",
+      });
+      return;
+    }
+
     if (password.length < 8) {
       res.status(400).json({
         status: "Failed",
@@ -61,13 +88,25 @@ export const registerUser = async (
 export const loginUser = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
-
+    if (!email) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Email harus di isi!",
+      });
+      return;
+    } else if (!password) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Passoword harus di isi!",
+      });
+      return;
+    }
     const user = await User.findOne({ email });
 
     if (!user) {
       res.status(400).json({
         status: "Failed",
-        message: "Username yang anda masukan salah",
+        message: "Email yang anda masukan salah",
       });
       return;
     }

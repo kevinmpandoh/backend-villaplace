@@ -49,16 +49,41 @@ export const updateOwnerById = async (
     const { nama, email, no_telepon } = req.body;
     let updateData: any = { nama, email, no_telepon };
 
-    // Update profile picture if provided
-    if (req.file && req.file.path) {
-      updateData.foto_profile = req.file.path; // Assuming file upload middleware is used
-    }
+    //! Cek apakah email, no_telepon, atau nama sudah digunakan oleh owner lain
+    const existingOwnerWithEmail =
+      email && (await Owner.findOne({ email, _id: { $ne: id } }));
+    const existingOwnerWithPhone =
+      no_telepon && (await Owner.findOne({ no_telepon, _id: { $ne: id } }));
+    const existingOwnerWithName =
+      nama && (await Owner.findOne({ nama, _id: { $ne: id } }));
 
+    if (existingOwnerWithEmail) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Email sudah digunakan oleh owner lain",
+      });
+      return;
+    } else if (existingOwnerWithPhone) {
+      res.status(400).json({
+        status: "Failed",
+        message: "No telepon sudah digunakan oleh owner lain",
+      });
+      return;
+    } else if (existingOwnerWithName) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Nama sudah digunakan oleh owner lain",
+      });
+      return;
+    }
     const updatedOwner = await Owner.findByIdAndUpdate(id, updateData, {
       new: true,
     });
     if (!updatedOwner) {
-      res.status(404).json({ status: "Failed", message: "Owner not found" });
+      res.status(404).json({
+        status: "Failed",
+        message: "Owner tidak ditemukan",
+      });
       return;
     }
     res.json({
@@ -79,7 +104,10 @@ export const deleteOwnerById = async (
     const { id } = req.params;
     const deletedOwner = await Owner.findByIdAndDelete(id);
     if (!deletedOwner) {
-      res.status(404).json({ status: "Failed", message: "Owner not found" });
+      res.status(404).json({
+        status: "Failed",
+        message: "Owner tidak ditemukan",
+      });
       return;
     }
     res.json({
