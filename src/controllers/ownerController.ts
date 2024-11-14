@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import Owner from "../models/ownerModel";
 import bcrypt from "bcrypt";
-const JWT_SECRET = process.env.JWT_SECRET;
+import { Villa } from "../models/villaModel";
+
 //! Get all owners
 export const getAllOwners = async (
   req: Request,
@@ -110,6 +111,10 @@ export const deleteOwnerById = async (
       });
       return;
     }
+
+    // Delete all villas owned by the owner
+    await Villa.deleteMany({ pemilik_villa: id });
+
     res.json({
       status: "Success",
       message: "Owner successfully deleted",
