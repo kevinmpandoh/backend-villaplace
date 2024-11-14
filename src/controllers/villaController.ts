@@ -37,42 +37,37 @@ const VillaController = {
         .limit(limitNumber)
         .populate("pemilik_villa foto_villa");
 
-      // Menggunakan `Promise.all` di luar loop untuk performa yang lebih baik
-      const villaIds = villas.map((villa) => villa._id as string);
+      const villaDetails = await Promise.all(
+        villas.map(async (villa) => {
+          const ulasans = await Ulasan.find({ villa: villa._id })
+            .populate("user")
+            .exec();
 
-      const [ulasansByVilla, pesanansByVilla] = await Promise.all([
-        Ulasan.find({ villa: { $in: villaIds } }).populate("user"),
-        Pesanan.find({ villa: { $in: villaIds } }).populate("user"),
-      ]);
+          const pesanans = await Pesanan.find({ villa: villa._id })
+            .populate("user")
+            .exec();
+          const totalRating = ulasans.reduce(
+            (sum, ulasan) => sum + ulasan.rating,
+            0
+          );
+          const averageRating =
+            ulasans.length > 0 ? totalRating / ulasans.length : 0;
+          const commentCount = ulasans.length;
 
-      const villaDetails = villas.map((villa) => {
-        const ulasans = ulasansByVilla.filter(
-          (ulasan) => ulasan.villa.toString() === villa._id
-        );
-        const pesanans = pesanansByVilla.filter(
-          (pesanan) => pesanan.villa.toString() === villa._id
-        );
-
-        const totalRating = ulasans.reduce(
-          (sum, ulasan) => sum + ulasan.rating,
-          0
-        );
-        const averageRating =
-          ulasans.length > 0 ? totalRating / ulasans.length : 0;
-
-        return {
-          ...villa.toObject(),
-          averageRating,
-          commentCount: ulasans.length,
-          ulasan: ulasans.map(({ komentar, rating, user, _id }) => ({
-            komentar,
-            rating,
-            user,
-            _id,
-          })),
-          pesanans,
-        };
-      });
+          return {
+            ...villa.toObject(),
+            averageRating: averageRating,
+            commentCount: commentCount,
+            ulasan: ulasans.map((ulasan) => ({
+              komentar: ulasan.komentar,
+              rating: ulasan.rating,
+              user: ulasan.user,
+              _id: ulasan._id,
+            })),
+            pesanans: pesanans,
+          };
+        })
+      );
 
       const totalVillas = await Villa.countDocuments(query);
       const totalPages = Math.ceil(totalVillas / limitNumber);
