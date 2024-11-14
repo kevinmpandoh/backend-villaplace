@@ -1,5 +1,6 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, CallbackError } from "mongoose";
 import { IPesanan } from "../types/Pesanan";
+import { Pembayaran } from "./pembayaranModel";
 
 const pesananSchema: Schema = new Schema(
   {
@@ -22,5 +23,21 @@ const pesananSchema: Schema = new Schema(
     timestamps: true,
   }
 );
+
+// buat middleware dimana jika pesanan di hapus maka pembayaran juga di hapus
+pesananSchema.pre("deleteMany", async function (next) {
+  try {
+    const filter = this.getFilter(); // Mendapatkan filter untuk operasi delete
+    const pesananIds = await this.model.find(filter).select("_id");
+    const ids = pesananIds.map((pesanan) => pesanan._id);
+
+    await Pembayaran.deleteMany({ pesanan: { $in: ids } });
+    console.log(`Related payments for orders ${ids} have been deleted.`);
+    next();
+  } catch (error) {
+    console.log(error);
+    next(error as CallbackError);
+  }
+});
 
 export const Pesanan = mongoose.model<IPesanan>("Pesanan", pesananSchema);

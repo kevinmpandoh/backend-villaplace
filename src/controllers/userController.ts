@@ -1,9 +1,8 @@
 import { Request, Response } from "express";
 import User from "../models/userModel";
 import bcrypt from "bcrypt";
-import jwt, { JwtPayload } from "jsonwebtoken";
-// import user from "../models/user";
-const JWT_SECRET = process.env.JWT_SECRET;
+import { Ulasan } from "../models/Ulasan";
+import { Pesanan } from "../models/pesananModel";
 
 //! Get all users
 export const getAllUsers = async (
@@ -109,6 +108,11 @@ export const deleteUserById = async (
       res.status(404).json({ status: "Failed", message: "User not found" });
       return;
     }
+
+    //! Delete all reviews and orders related to the user
+    await Ulasan.deleteMany({ user: id });
+    await Pesanan.deleteMany({ user: id });
+
     res.json({
       status: "Success",
       message: "User successfully deleted",
@@ -181,6 +185,7 @@ export const changePasswordUser = async (
       message: "Password successfully updated",
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: "Server error" });
   }
 };
