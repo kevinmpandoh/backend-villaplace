@@ -11,12 +11,51 @@ export const registerOwner = async (
 ): Promise<void> => {
   try {
     const { nama, email, password, no_telepon } = req.body;
-
-    const existingUser = await Owner.findOne({ email });
-    if (existingUser) {
+    if (!nama) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Nama harus di isi!",
+      });
+      return;
+    } else if (!email) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Email harus di isi!",
+      });
+      return;
+    } else if (!password) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Password harus di isi!",
+      });
+      return;
+    } else if (!no_telepon) {
+      res.status(400).json({
+        status: "Failed",
+        message: "No telepon harus di isi!",
+      });
+      return;
+    }
+    if (password.length < 8) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Password harus memiliki minimal 8 karakter",
+      });
+      return;
+    }
+    const existingOwner = await Owner.findOne({ email });
+    if (existingOwner) {
       res.status(400).json({
         status: "Failed",
         message: "Email sudah digunakan!",
+      });
+      return;
+    }
+    const existingOwnerNotelepon = await Owner.findOne({ no_telepon });
+    if (existingOwnerNotelepon) {
+      res.status(400).json({
+        status: "Failed",
+        message: "No telepon sudah digunakan!",
       });
       return;
     }
@@ -47,12 +86,24 @@ export const loginOwner = async (
 ): Promise<void> => {
   try {
     const { email, password } = req.body;
-
+    if (!email) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Email harus di isi!",
+      });
+      return;
+    } else if (!password) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Password harus di isi!",
+      });
+      return;
+    }
     const owner = await Owner.findOne({ email });
     if (!owner) {
       res.status(400).json({
         status: "Failed",
-        message: "Username yang anda masukan salah",
+        message: "Email yang anda masukan salah",
       });
       return;
     }
@@ -69,7 +120,7 @@ export const loginOwner = async (
 
     const token = jwt.sign(
       {
-        userId: owner._id,
+        ownerId: owner._id,
         nama: owner.nama,
         email: owner.email,
         no_telepon: owner.no_telepon,

@@ -4,6 +4,10 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import path from "path";
 import cookieParser from "cookie-parser";
+
+import "./schedulers/updateStatusPesanan";
+import "./schedulers/updateStatusPembayaran";
+
 const router = require("./routes");
 
 // Load environment variables
@@ -27,12 +31,16 @@ app.use(express.urlencoded({ extended: true }));
 
 // Set folder 'uploads' sebagai folder statis agar bisa diakses melalui URL
 app.use(
-  "/uploads/profile",
-  express.static(path.join(__dirname, "./assets/img/profile"))
+  "/images/user-profile",
+  express.static(path.join(__dirname, "./assets/img/profile/user"))
 );
 app.use(
-  "/uploads/villa",
+  "/images/villa",
   express.static(path.join(__dirname, "./assets/img/villa"))
+);
+app.use(
+  "/images/owner-profile",
+  express.static(path.join(__dirname, "./assets/img/profile/owner"))
 );
 
 // Routes

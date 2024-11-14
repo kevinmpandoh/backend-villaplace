@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
 import { Pembayaran } from "../models/pembayaranModel";
 import { Pesanan } from "../models/pesananModel";
-
 const midtransClient = require("midtrans-client");
-const cron = require("node-cron");
 
 const PembayaranController = {
   getAllPembayaran: async (req: Request, res: Response) => {
@@ -51,6 +49,15 @@ const PembayaranController = {
 
   createPembayaran: async (req: Request, res: Response) => {
     try {
+      const pesanan = await Pesanan.findById(req.body.pesanan);
+
+      if (!pesanan) {
+        return res.status(404).json({
+          status: "error",
+          message: "Pesanan not found",
+        });
+      }
+
       const newPembayaran = new Pembayaran(req.body);
 
       const savedPembayaran = await newPembayaran.save();
@@ -149,6 +156,7 @@ const PembayaranController = {
         isProduction: false,
         serverKey: process.env.MIDTRANS_SERVER_KEY,
       });
+
       const parameter = {
         transaction_details: {
           order_id: kode_pembayaran,
@@ -162,6 +170,7 @@ const PembayaranController = {
           email: email_pembayar,
         },
       };
+
       const transaction = await snap.createTransaction(parameter);
       res.status(201).json({
         status: "success",

@@ -13,6 +13,8 @@ const {
   uploadVillaImages,
   getVillaImages,
   deleteVillaImage,
+  updateVillaStatus,
+  getBookedDatesByVillaId,
 } = require("../controllers/villaController");
 
 router.get("/", getAllVillas);
@@ -27,5 +29,7 @@ router.post(
 );
 router.get("/:id/photos", getVillaImages);
 router.delete("/:id/photos/:photoId", deleteVillaImage);
+router.patch("/:id/change-status", verifyAdmin, updateVillaStatus);
+router.get("/:id/booked-dates", getBookedDatesByVillaId); // Tambahkan route baru
 
 module.exports = router;
