@@ -42,10 +42,6 @@ const VillaController = {
           const ulasans = await Ulasan.find({ villa: villa._id })
             .populate("user")
             .exec();
-
-          const pesanans = await Pesanan.find({ villa: villa._id })
-            .populate("user")
-            .exec();
           const totalRating = ulasans.reduce(
             (sum, ulasan) => sum + ulasan.rating,
             0
@@ -58,13 +54,6 @@ const VillaController = {
             ...villa.toObject(),
             averageRating: averageRating,
             commentCount: commentCount,
-            ulasan: ulasans.map((ulasan) => ({
-              komentar: ulasan.komentar,
-              rating: ulasan.rating,
-              user: ulasan.user,
-              _id: ulasan._id,
-            })),
-            pesanans: pesanans,
           };
         })
       );
