@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Pembayaran } from "../models/pembayaranModel";
+import { Pesanan } from "../models/pesananModel";
 const midtransClient = require("midtrans-client");
 
 const PembayaranController = {
@@ -48,6 +49,15 @@ const PembayaranController = {
 
   createPembayaran: async (req: Request, res: Response) => {
     try {
+      const pesanan = await Pesanan.findById(req.body.pesanan);
+
+      if (!pesanan) {
+        return res.status(404).json({
+          status: "error",
+          message: "Pesanan not found",
+        });
+      }
+
       const newPembayaran = new Pembayaran(req.body);
 
       const savedPembayaran = await newPembayaran.save();
