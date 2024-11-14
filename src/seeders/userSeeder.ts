@@ -1,5 +1,5 @@
 // seeders/userSeeder.ts
-import User from "../models/user";
+import User from "../models/userModel";
 import bcrypt from "bcrypt";
 
 const userSeeder = async () => {
@@ -11,21 +11,21 @@ const userSeeder = async () => {
     const users = [
       {
         nama: "Kevin",
-        email: "keivn@gmail.com",
+        email: "kevin@gmail.com",
         password: await bcrypt.hash("password", 10), // Hashing password
-        no_telepon: "081234567890",
+        no_telepon: "0281234567890",
       },
       {
         nama: "Fery",
         email: "fery@gmail.com",
         password: await bcrypt.hash("password", 10),
-        no_telepon: "081987654321",
+        no_telepon: "0812987654321",
       },
       {
         nama: "Denti",
         email: "denti@gmail.com",
         password: await bcrypt.hash("password", 10),
-        no_telepon: "081234517892",
+        no_telepon: "0815234517892",
       },
     ];
 
