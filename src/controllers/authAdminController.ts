@@ -43,13 +43,17 @@ export const loginAdmin = async (
       {
         expiresIn: "1h",
       }
+      
     );
-
     res.cookie("tokenAdmin", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
     });
-    res.json({ token });
+    res.json({
+      status: "Success",
+      message: "Berhasil login",
+      token,
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
