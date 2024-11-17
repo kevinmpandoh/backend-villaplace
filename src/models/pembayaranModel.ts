@@ -10,6 +10,7 @@ const PembayaranSchema = new Schema<IPembayaran>({
   nomor_va: { type: String, default: null },
   cara_pembayaran: { type: String, required: true },
   pesanan: { type: Schema.Types.ObjectId, ref: "Pesanan", required: true },
-});
+},
+{timestamps: true});
 
 export const Pembayaran = model<IPembayaran>("Pembayaran", PembayaranSchema);

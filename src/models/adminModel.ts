@@ -9,7 +9,7 @@ const adminSchema = new Schema<IAdmin>({
     type: String,
     required: true,
   },
-  foto_profile: { type: String, default: "/assets/img/default_avatar/PP_MALE.png" },
+  foto_profile: { type: String, default: "default.png" },
 },
 {
   timestamps: true,
