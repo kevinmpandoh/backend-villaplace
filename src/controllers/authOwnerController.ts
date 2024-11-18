@@ -79,7 +79,7 @@ export const registerOwner = async (
   }
 };
 
-//! MEMBUAT MENU LOGIN, ADMIN OWNER!
+//! MEMBUAT MENU LOGIN OWNER!
 export const loginOwner = async (
   req: Request,
   res: Response
