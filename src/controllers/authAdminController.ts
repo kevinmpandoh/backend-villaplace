@@ -46,7 +46,6 @@ export const loginAdmin = async (
     );
 
     res.cookie("tokenAdmin", token, {
-      httpOnly: true,
       secure: process.env.NODE_ENV === "production",
     });
     res.json({ token });
