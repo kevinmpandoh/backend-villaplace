@@ -81,20 +81,30 @@ const adminController = {
   updateAdminById: async (req: Request, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
-      const { nama, email, no_telepon } = req.body;
-      let updateData: any = { nama, email, no_telepon };
-
+      const { nama, email } = req.body;
+      const updateData: any = { nama, email };
+  
+      const emailExists = await Admin.findOne({ email, _id: { $ne: id } });
+      if (emailExists) {
+        res.status(400).json({
+          status: "error",
+          message: "Email already exists for another admin",
+        });
+        return;
+      }
+  
       const updatedAdmin = await Admin.findByIdAndUpdate(id, updateData, {
         new: true,
       });
-
+  
       if (!updatedAdmin) {
         res.status(404).json({
           status: "error",
           message: "Admin not found",
         });
+        return;
       }
-
+  
       res.status(200).json({
         status: "success",
         message: "Success update admin by id",
@@ -107,6 +117,7 @@ const adminController = {
       });
     }
   },
+  
 
   deleteAdminById: async (req: Request, res: Response): Promise<void> => {
     try {
