@@ -132,9 +132,8 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
         expiresIn: "1h",
       }
     );
-    // res.cookie("tokenUser", token);
+
     res.cookie("tokenUser", token, {
-      httpOnly: true,
       secure: process.env.NODE_ENV === "production",
     });
     res.json({
