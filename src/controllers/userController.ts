@@ -47,148 +47,82 @@ export const getUserById = async (
 };
 
 //! Update a user by ID
-// export const updateUserById = async (
-//   req: Request,
-//   res: Response
-// ): Promise<void> => {
-//   try {
-//     const { id } = req.params;
 
-//     const { nama, email, no_telepon } = req.body;
-//     let updateData: any = { nama, email, no_telepon };
-
-//     //! Cek apakah email, no_telepon, atau nama sudah digunakan oleh user lain
-//     const existingUserWithEmail =
-//       email && (await User.findOne({ email, _id: { $ne: id } }));
-//     const existingUserWithPhone =
-//       no_telepon && (await User.findOne({ no_telepon, _id: { $ne: id } }));
-
-//     if (existingUserWithEmail) {
-//       res.status(400).json({
-//         status: "Failed",
-//         error: {
-//           message: "Email sudah digunakan oleh user lain",
-//           field: "email",
-//         },
-//       });
-//     } else if (existingUserWithPhone) {
-//       res.status(400).json({
-//         status: "Failed",
-//         message: "No telepon sudah digunakan oleh user lain",
-//       });
-//     } else {
-//       const updatedUser = await User.findByIdAndUpdate(id, updateData, {
-//         new: true,
-//       });
-//       if (!updatedUser) {
-//         res.status(404).json({
-//           status: "Failed",
-//           message: "User tidak ada",
-//         });
-//         return;
-//       }
-//       res.json({
-//         status: "Success",
-//         data: updatedUser,
-//       });
-//     }
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
-//? OBJECT ERROR
 export const updateUserById = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { nama, email, no_telepon } = req.body;
-    let updateData: any = { nama, email, no_telepon };
+    const { email, no_telepon } = req.body;
 
-    //! Cek apakah email, no_telepon, atau nama sudah digunakan oleh user lain
-    const existingUserWithEmail =
-      email && (await User.findOne({ email, _id: { $ne: id } }));
-    const existingUserWithPhone =
-      no_telepon && (await User.findOne({ no_telepon, _id: { $ne: id } }));
+    // Objek untuk menyimpan error
+    const errors: { [key: string]: string } = {};
 
-    if (existingUserWithEmail) {
-      // No return here, just send the response
-      res.status(400).json({
-        status: "Failed",
-        error: {
-          message: "Email sudah digunakan oleh user lain",
-          field: "email",
-        },
+    // Cek apakah email sudah digunakan oleh user lain
+    if (email) {
+      const existingUserWithEmail = await User.findOne({
+        email,
+        _id: { $ne: id },
       });
-      return; // Ensures the function stops here
-    } else if (existingUserWithPhone) {
+      if (existingUserWithEmail) {
+        errors.email = "Email sudah digunakan oleh user lain";
+      }
+    }
+
+    // Cek apakah no_telepon sudah digunakan oleh user lain
+    if (no_telepon) {
+      const existingUserWithPhone = await User.findOne({
+        no_telepon,
+        _id: { $ne: id },
+      });
+      if (existingUserWithPhone) {
+        errors.no_telepon = "No telepon sudah digunakan oleh user lain";
+      }
+    }
+
+    // Jika ada error, kirimkan semua error dalam satu response
+    if (Object.keys(errors).length > 0) {
       res.status(400).json({
         status: "Failed",
-        error: {
-          message: "No telepon sudah digunakan oleh user lain",
-          field: "no_telepon",
-        },
+        message: "Validasi gagal",
+        errors, // Mengirim semua error yang ditemukan dalam objek
       });
       return;
-    } else {
-      const updatedUser = await User.findByIdAndUpdate(id, updateData, {
-        new: true,
-      });
-      if (!updatedUser) {
-        res.status(404).json({
-          status: "Failed",
-          error: {
-            message: "User tidak ditemukan",
-            field: "id",
-          },
-        });
-        return;
-      }
-      res.json({
-        status: "Success",
-        data: updatedUser,
-      });
     }
+
+    // Jika tidak ada error, lanjutkan dengan update data user
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      { email, no_telepon },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      res.status(404).json({
+        status: "Failed",
+        message: "User tidak ditemukan",
+        errors: { id: "User tidak ditemukan" },
+      });
+      return;
+    }
+
+    // Respons sukses jika update berhasil
+    res.json({
+      status: "Success",
+      message: "User berhasil diperbarui",
+      data: updatedUser,
+    });
   } catch (error) {
     res.status(500).json({
       status: "Failed",
-      error: {
-        message: "Server error during update",
-        details: error instanceof Error ? error.message : "Unknown error",
-      },
+      message: "Terjadi kesalahan pada server",
+      errors: { server: "Terjadi kesalahan pada server!" },
     });
   }
 };
 
 //! Delete a user by ID
-// export const deleteUserById = async (
-//   req: Request,
-//   res: Response
-// ): Promise<void> => {
-//   try {
-//     const { id } = req.params;
-//     const deletedUser = await User.findByIdAndDelete(id);
-//     if (!deletedUser) {
-//       res.status(404).json({ status: "Failed", message: "User not found" });
-//       return;
-//     }
-
-//     //! Delete all reviews and orders related to the user
-//     await Ulasan.deleteMany({ user: id });
-//     await Pesanan.deleteMany({ user: id });
-
-//     res.json({
-//       status: "Success",
-//       message: "User successfully deleted",
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
-//? OBJECT ERROR
 export const deleteUserById = async (
   req: Request,
   res: Response
@@ -229,27 +163,6 @@ export const deleteUserById = async (
 };
 
 //! USER CURRENT
-// export const getUserCurrent = async (
-//   req: Request,
-//   res: Response
-// ): Promise<void> => {
-//   try {
-//     const userId = req.body.userLogin.userId;
-//     const user = await User.findById(userId, "-password"); // Exclude password field
-//     if (!user) {
-//       res.status(404).json({ status: "Failed", message: "User not found" });
-//       return;
-//     }
-//     res.json({
-//       status: "Success",
-//       data: user,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error", error });
-//   }
-// };
-
-//? OBJECT ERROR
 export const getUserCurrent = async (
   req: Request,
   res: Response
@@ -257,81 +170,20 @@ export const getUserCurrent = async (
   try {
     const userId = req.body.userLogin.userId;
     const user = await User.findById(userId, "-password"); // Exclude password field
-
     if (!user) {
-      // Return error as an object for easier frontend handling
-      res.status(404).json({
-        status: "Failed",
-        error: {
-          message: "User not found",
-          field: "userId",
-        },
-      });
+      res.status(404).json({ status: "Failed", message: "User not found" });
       return;
     }
-
     res.json({
       status: "Success",
       data: user,
     });
   } catch (error) {
-    // Simplified error response
-    res.status(500).json({
-      status: "Failed",
-      error: {
-        message: "Server error while fetching user",
-      },
-    });
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
 //! CHANGE PASSWORD
-// export const changePasswordUser = async (
-//   req: Request,
-//   res: Response
-// ): Promise<void> => {
-//   try {
-//     const { currentPassword, newPassword } = req.body;
-//     // Validasi panjang password
-//     if (newPassword.length < 8) {
-//       res.status(400).json({
-//         status: "Failed",
-//         message: "Password harus memiliki minimal 8 karakter",
-//       });
-//       return;
-//     }
-//     const userId = req.body.userLogin.userId; // Ambil userId dari userLogin di req.body
-//     const user = await User.findById(userId);
-
-//     if (!user) {
-//       res.status(404).json({ status: "Failed", message: "User not found" });
-//       return;
-//     }
-
-//     // Compare the current password
-//     const isMatch = await bcrypt.compare(currentPassword, user.password);
-
-//     if (!isMatch) {
-//       res
-//         .status(400)
-//         .json({ status: "Failed", message: "Incorrect current password" });
-//       return;
-//     }
-
-//     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-//     user.password = hashedNewPassword;
-//     await user.save();
-
-//     res.status(200).json({
-//       status: "Success",
-//       message: "Password successfully updated",
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-//? OBJECT ERROR
 export const changePasswordUser = async (
   req: Request,
   res: Response
@@ -339,14 +191,26 @@ export const changePasswordUser = async (
   try {
     const { currentPassword, newPassword } = req.body;
 
-    // Validasi panjang password
-    if (newPassword.length < 8) {
+    // Objek untuk menyimpan error
+    const errors: { [key: string]: string } = {};
+
+    // Validasi password lama dan baru
+    if (!currentPassword) {
+      errors.currentPassword = "Password lama harus diisi";
+    }
+
+    if (!newPassword) {
+      errors.newPassword = "Password baru harus diisi";
+    } else if (newPassword.length < 8) {
+      errors.newPassword = "Password baru harus memiliki minimal 8 karakter";
+    }
+
+    // Jika ada error, kirimkan semua error dalam satu response
+    if (Object.keys(errors).length > 0) {
       res.status(400).json({
         status: "Failed",
-        error: {
-          message: "Password harus memiliki minimal 8 karakter",
-          field: "newPassword",
-        },
+        message: "Validasi gagal",
+        errors, // Mengirim semua error yang ditemukan dalam objek
       });
       return;
     }
@@ -400,32 +264,7 @@ export const changePasswordUser = async (
   }
 };
 
-// ?
-
 //! UPLOAD IMAGE PROFILE
-// export const uploadProfileImagesUser = async (req: Request, res: Response) => {
-//   try {
-//     const userId = req.params.id;
-//     const foto_profile = req.file?.filename;
-//     let updateData: any = { foto_profile };
-//     const updatedUser = await User.findByIdAndUpdate(userId, updateData, {
-//       new: true,
-//     });
-
-//     res.json({
-//       status: "Success",
-//       data: updatedUser,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({
-//       status: "error",
-//       message: "Failed to upload user images",
-//     });
-//   }
-// };
-
-//? OBJECT ERROR
 export const uploadProfileImagesUser = async (req: Request, res: Response) => {
   try {
     const userId = req.params.id;

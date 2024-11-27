@@ -20,27 +20,6 @@ export const getAllOwners = async (
 };
 
 //! Get an owner by ID
-// export const getOwnerById = async (
-//   req: Request,
-//   res: Response
-// ): Promise<void> => {
-//   try {
-//     const { id } = req.params;
-//     const owner = await Owner.findById(id, "-password"); // Exclude password field
-//     if (!owner) {
-//       res.status(404).json({ status: "Failed", message: "Owner not found" });
-//       return;
-//     }
-//     res.json({
-//       status: "Success",
-//       data: owner,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
-// ?OBJECT ERROR
 export const getOwnerById = async (
   req: Request,
   res: Response
@@ -48,82 +27,21 @@ export const getOwnerById = async (
   try {
     const { id } = req.params;
     const owner = await Owner.findById(id, "-password"); // Exclude password field
-
     if (!owner) {
-      res.status(404).json({
-        status: "Failed",
-        error: {
-          message: "Owner not found",
-          field: "id",
-        },
-      });
+      res.status(404).json({ status: "Failed", message: "Owner not found" });
       return;
     }
-
-    res.status(200).json({
+    res.json({
       status: "Success",
       data: owner,
     });
   } catch (error) {
-    console.log(error); // For debugging purposes (optional)
-    res.status(500).json({
-      status: "Failed",
-      error: {
-        message: "Server error while fetching owner details",
-      },
-    });
+    res.status(500).json({ message: "Server error" });
   }
 };
 
 //! Update an owner by ID
-// export const updateOwnerById = async (
-//   req: Request,
-//   res: Response
-// ): Promise<void> => {
-//   try {
-//     const { id } = req.params;
-//     const { nama, email, no_telepon } = req.body;
-//     let updateData: any = { nama, email, no_telepon };
 
-//     //! Cek apakah email, no_telepon, atau nama sudah digunakan oleh owner lain
-//     const existingOwnerWithEmail =
-//       email && (await Owner.findOne({ email, _id: { $ne: id } }));
-//     const existingOwnerWithPhone =
-//       no_telepon && (await Owner.findOne({ no_telepon, _id: { $ne: id } }));
-
-//     if (existingOwnerWithEmail) {
-//       res.status(400).json({
-//         status: "Failed",
-//         message: "Email sudah digunakan oleh owner lain",
-//       });
-//       return;
-//     } else if (existingOwnerWithPhone) {
-//       res.status(400).json({
-//         status: "Failed",
-//         message: "No telepon sudah digunakan oleh owner lain",
-//       });
-//       return;
-//     }
-//     const updatedOwner = await Owner.findByIdAndUpdate(id, updateData, {
-//       new: true,
-//     });
-//     if (!updatedOwner) {
-//       res.status(404).json({
-//         status: "Failed",
-//         message: "Owner tidak ditemukan",
-//       });
-//       return;
-//     }
-//     res.json({
-//       status: "Success",
-//       data: updatedOwner,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
-// ?OBJECT ERROR
 export const updateOwnerById = async (
   req: Request,
   res: Response
@@ -133,32 +51,42 @@ export const updateOwnerById = async (
     const { nama, email, no_telepon } = req.body;
     let updateData: any = { nama, email, no_telepon };
 
-    // Check if email or phone number is already used by another owner
-    const existingOwnerWithEmail =
-      email && (await Owner.findOne({ email, _id: { $ne: id } }));
-    const existingOwnerWithPhone =
-      no_telepon && (await Owner.findOne({ no_telepon, _id: { $ne: id } }));
+    // Objek untuk menyimpan error
+    const errors: { [key: string]: string } = {};
 
-    if (existingOwnerWithEmail) {
-      res.status(400).json({
-        status: "Failed",
-        error: {
-          message: "Email sudah digunakan oleh owner lain",
-          field: "email",
-        },
+    // Cek apakah email sudah digunakan oleh owner lain
+    if (email) {
+      const existingOwnerWithEmail = await Owner.findOne({
+        email,
+        _id: { $ne: id },
       });
-      return;
-    } else if (existingOwnerWithPhone) {
+      if (existingOwnerWithEmail) {
+        errors.email = "Email sudah digunakan oleh owner lain";
+      }
+    }
+
+    // Cek apakah no_telepon sudah digunakan oleh owner lain
+    if (no_telepon) {
+      const existingOwnerWithPhone = await Owner.findOne({
+        no_telepon,
+        _id: { $ne: id },
+      });
+      if (existingOwnerWithPhone) {
+        errors.no_telepon = "No telepon sudah digunakan oleh owner lain";
+      }
+    }
+
+    // Jika ada error, kirimkan semua error dalam satu response
+    if (Object.keys(errors).length > 0) {
       res.status(400).json({
         status: "Failed",
-        error: {
-          message: "No telepon sudah digunakan oleh owner lain",
-          field: "no_telepon",
-        },
+        message: "Validasi gagal",
+        errors, // Mengirim semua error yang ditemukan dalam objek
       });
       return;
     }
 
+    // Jika tidak ada error, lanjutkan dengan update data owner
     const updatedOwner = await Owner.findByIdAndUpdate(id, updateData, {
       new: true,
     });
@@ -174,12 +102,13 @@ export const updateOwnerById = async (
       return;
     }
 
+    // Respons sukses jika update berhasil
     res.status(200).json({
       status: "Success",
       data: updatedOwner,
     });
   } catch (error) {
-    console.log(error); // For debugging purposes (optional)
+    console.log(error); // Untuk debugging (opsional)
     res.status(500).json({
       status: "Failed",
       error: {
@@ -190,34 +119,6 @@ export const updateOwnerById = async (
 };
 
 //! Delete an owner by ID
-// export const deleteOwnerById = async (
-//   req: Request,
-//   res: Response
-// ): Promise<void> => {
-//   try {
-//     const { id } = req.params;
-//     const deletedOwner = await Owner.findByIdAndDelete(id);
-//     if (!deletedOwner) {
-//       res.status(404).json({
-//         status: "Failed",
-//         message: "Owner tidak ditemukan",
-//       });
-//       return;
-//     }
-
-//     // Delete all villas owned by the owner
-//     await Villa.deleteMany({ pemilik_villa: id });
-
-//     res.json({
-//       status: "Success",
-//       message: "Owner successfully deleted",
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
-// ?OBJECT ERROR
 export const deleteOwnerById = async (
   req: Request,
   res: Response
@@ -256,27 +157,6 @@ export const deleteOwnerById = async (
 };
 
 //! CURRENT OWNER
-// export const getOwnerCurrent = async (
-//   req: Request,
-//   res: Response
-// ): Promise<void> => {
-//   try {
-//     const ownerId = req.body.owner.ownerId;
-//     const owner = await Owner.findById(ownerId, "-password");
-//     if (!owner) {
-//       res.status(404).json({ status: "Failed", message: "Owner not found" });
-//       return;
-//     }
-//     res.json({
-//       status: "Success",
-//       data: owner,
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error", error });
-//   }
-// };
-
-// ?OBJECT ERROR
 export const getOwnerCurrent = async (
   req: Request,
   res: Response
@@ -284,80 +164,21 @@ export const getOwnerCurrent = async (
   try {
     const ownerId = req.body.owner.ownerId;
     const owner = await Owner.findById(ownerId, "-password");
-
     if (!owner) {
-      res.status(404).json({
-        status: "Failed",
-        error: {
-          message: "Owner not found",
-          field: "ownerId",
-        },
-      });
+      res.status(404).json({ status: "Failed", message: "Owner not found" });
       return;
     }
-
-    res.status(200).json({
+    res.json({
       status: "Success",
       data: owner,
     });
   } catch (error) {
-    console.log(error); // Optional, for debugging purposes
-    res.status(500).json({
-      status: "Failed",
-      error: {
-        message: "Server error while fetching owner data",
-      },
-    });
+    res.status(500).json({ message: "Server error", error });
   }
 };
 
 //! CHANGE PASSWORD OWNER
-// export const changePasswordOwner = async (
-//   req: Request,
-//   res: Response
-// ): Promise<void> => {
-//   try {
-//     const { currentPassword, newPassword } = req.body;
-//     // Validasi panjang password
-//     if (newPassword.length < 8) {
-//       res.status(400).json({
-//         status: "Failed",
-//         message: "Password harus memiliki minimal 8 karakter",
-//       });
-//       return;
-//     }
-//     const ownerId = req.body.owner.ownerId; // Ambil userId dari userLogin di req.body
-//     const owner = await Owner.findById(ownerId);
 
-//     if (!owner) {
-//       res.status(404).json({ status: "Failed", message: "Owner not found" });
-//       return;
-//     }
-
-//     // Compare the current password
-//     const isMatch = await bcrypt.compare(currentPassword, owner.password);
-
-//     if (!isMatch) {
-//       res
-//         .status(400)
-//         .json({ status: "Failed", message: "Incorrect current password" });
-//       return;
-//     }
-
-//     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-//     owner.password = hashedNewPassword;
-//     await owner.save();
-
-//     res.status(200).json({
-//       status: "Success",
-//       message: "Password successfully updated",
-//     });
-//   } catch (error) {
-//     res.status(500).json({ message: "Server error" });
-//   }
-// };
-
-// ?OBJECT ERROR
 export const changePasswordOwner = async (
   req: Request,
   res: Response
@@ -365,90 +186,90 @@ export const changePasswordOwner = async (
   try {
     const { currentPassword, newPassword } = req.body;
 
-    // Validate new password length
-    if (newPassword.length < 8) {
+    // Objek untuk menyimpan error
+    const errors: { [key: string]: string } = {};
+
+    // Validasi untuk password lama dan password baru
+    if (!currentPassword) {
+      errors.currentPassword = "Password lama harus diisi";
+    }
+    if (!newPassword) {
+      errors.newPassword = "Password baru harus diisi";
+    }
+
+    // Jika ada error, kirimkan semua error dalam satu response
+    if (Object.keys(errors).length > 0) {
       res.status(400).json({
         status: "Failed",
-        error: {
-          message: "Password must be at least 8 characters long",
-          field: "newPassword",
-        },
+        message: "Validasi gagal",
+        errors, // Mengirim semua error yang ditemukan dalam objek
       });
       return;
     }
 
-    const ownerId = req.body.owner.ownerId; // Extract ownerId from the request body
+    // Validasi panjang password baru
+    if (newPassword.length < 8) {
+      errors.newPassword = "Password baru harus memiliki minimal 8 karakter";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      res.status(400).json({
+        status: "Failed",
+        message: "Validasi gagal",
+        errors, // Mengirim semua error yang ditemukan dalam objek
+      });
+      return;
+    }
+
+    const ownerId = req.body.owner.ownerId; // Ambil ownerId dari body request
     const owner = await Owner.findById(ownerId);
 
     if (!owner) {
       res.status(404).json({
         status: "Failed",
         error: {
-          message: "Owner not found",
+          message: "Owner tidak ditemukan",
           field: "ownerId",
         },
       });
       return;
     }
 
-    // Compare the current password
+    // Bandingkan password lama
     const isMatch = await bcrypt.compare(currentPassword, owner.password);
 
     if (!isMatch) {
       res.status(400).json({
         status: "Failed",
         error: {
-          message: "Password yang anda masukan salah!",
+          message: "Password yang anda masukkan salah",
           field: "currentPassword",
         },
       });
       return;
     }
 
-    // Hash the new password and update
+    // Hash password baru dan update
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
     owner.password = hashedNewPassword;
     await owner.save();
 
     res.status(200).json({
       status: "Success",
-      message: "Password successfully updated",
+      message: "Password berhasil diperbarui",
     });
   } catch (error) {
-    console.log(error); // Optional, for debugging purposes
+    console.log(error); // Untuk debugging (opsional)
     res.status(500).json({
       status: "Failed",
       error: {
-        message: "Server error while changing password",
+        message: "Terjadi kesalahan pada server saat mengganti password",
       },
     });
   }
 };
 
 //! UPLOAD FOTO PROFILE OWNER
-// export const uploadProfileImagesOwner = async (req: Request, res: Response) => {
-//   try {
-//     const ownerId = req.params.id;
-//     const foto_profile = req.file?.filename;
-//     let updateData: any = { foto_profile };
-//     const updatedOwner = await Owner.findByIdAndUpdate(ownerId, updateData, {
-//       new: true,
-//     });
-
-//     res.json({
-//       status: "Success",
-//       data: updatedOwner,
-//     });
-//   } catch (error) {
-//     console.log(error);
-//     res.status(500).json({
-//       status: "error",
-//       message: "Failed to upload owner images",
-//     });
-//   }
-// };
-
-// ?OBJECT ERROR
 export const uploadProfileImagesOwner = async (
   req: Request,
   res: Response
