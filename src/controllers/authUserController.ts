@@ -128,7 +128,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Validasi berhasil, buat token JWT
-    const user = await User.findOne({ email }); // Sudah dipastikan ada
+    const user = await User.findOne({ email });
     if (!user) {
       res.status(500).json({
         status: "Failed",

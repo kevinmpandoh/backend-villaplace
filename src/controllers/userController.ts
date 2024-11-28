@@ -196,13 +196,13 @@ export const changePasswordUser = async (
 
     // Validasi password lama dan baru
     if (!currentPassword) {
-      errors.currentPassword = "Password lama harus diisi";
+      errors.currentPassword = "Password lama harus diisi!";
     }
 
     if (!newPassword) {
       errors.newPassword = "Password baru harus diisi";
     } else if (newPassword.length < 8) {
-      errors.newPassword = "Password baru harus memiliki minimal 8 karakter";
+      errors.newPassword = "Password baru harus memiliki minimal 8 karakter!";
     }
 
     // Jika ada error, kirimkan semua error dalam satu response
@@ -210,7 +210,7 @@ export const changePasswordUser = async (
       res.status(400).json({
         status: "Failed",
         message: "Validasi gagal",
-        errors, // Mengirim semua error yang ditemukan dalam objek
+        errors,
       });
       return;
     }

@@ -129,7 +129,7 @@ export const loginOwner = async (
     }
 
     // Validasi berhasil, buat token JWT
-    const owner = await Owner.findOne({ email }); // Sudah dipastikan ada
+    const owner = await Owner.findOne({ email });
     if (!owner) {
       res.status(500).json({
         status: "Failed",
@@ -176,7 +176,6 @@ export const logoutOwner = async (
   res: Response
 ): Promise<void> => {
   try {
-    // Menghapus token di klien
     res.clearCookie("tokenOwner");
     res.json({
       status: "Success",
