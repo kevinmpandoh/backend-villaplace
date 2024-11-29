@@ -12,18 +12,33 @@ const VillaController = {
   getAllVillas: async (req: Request, res: Response) => {
     try {
       const {
-        kategori,
-        lokasi,
+        searchQuery,
         harga_min,
         harga_max,
         page = 1,
         limit = 5,
       } = req.query;
-      const query: any = {};
-
+      const query: any = {
+        status: "active",
+      };
+      if (searchQuery) {
+        const sanitizedSearchQuery = searchQuery.toString().replace(/\./g, "");
+  
+        query.$or = [
+          { nama: { $regex: searchQuery, $options: "i" } },
+          { lokasi: { $regex: searchQuery, $options: "i" } },
+          { kategori: { $elemMatch: { $regex: searchQuery, $options: "i" } } },
+        ];
+  
+        if (!isNaN(Number(sanitizedSearchQuery))) {
+          query.$or.push({ harga: Number(sanitizedSearchQuery) });
+          query.$or.push({
+            harga: { $regex: new RegExp(sanitizedSearchQuery, "i") },
+          });
+        }
+      }
+      
       // Membangun query filter secara dinamis
-      if (kategori) query.kategori = kategori;
-      if (lokasi) query.lokasi = lokasi;
       if (harga_min) query.harga = { ...query.harga, $gte: Number(harga_min) };
       if (harga_max) query.harga = { ...query.harga, $lte: Number(harga_max) };
 
