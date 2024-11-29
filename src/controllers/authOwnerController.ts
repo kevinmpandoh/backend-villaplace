@@ -11,55 +11,51 @@ export const registerOwner = async (
 ): Promise<void> => {
   try {
     const { nama, email, password, no_telepon } = req.body;
+    const errors: { [key: string]: string } = {};
+
+    // Validasi nama
     if (!nama) {
-      res.status(400).json({
-        status: "Failed",
-        message: "Nama harus di isi!",
-      });
-      return;
-    } else if (!email) {
-      res.status(400).json({
-        status: "Failed",
-        message: "Email harus di isi!",
-      });
-      return;
-    } else if (!password) {
-      res.status(400).json({
-        status: "Failed",
-        message: "Password harus di isi!",
-      });
-      return;
-    } else if (!no_telepon) {
-      res.status(400).json({
-        status: "Failed",
-        message: "No telepon harus di isi!",
-      });
-      return;
+      errors.nama = "Nama harus diisi!";
     }
-    if (password.length < 8) {
-      res.status(400).json({
-        status: "Failed",
-        message: "Password harus memiliki minimal 8 karakter",
-      });
-      return;
+
+    // Validasi email
+    if (!email) {
+      errors.email = "Email harus diisi!";
+    } else {
+      const existingOwner = await Owner.findOne({ email });
+      if (existingOwner) {
+        errors.email = "Email sudah digunakan oleh owner lain!";
+      }
     }
-    const existingOwner = await Owner.findOne({ email });
-    if (existingOwner) {
-      res.status(400).json({
-        status: "Failed",
-        message: "Email sudah digunakan!",
-      });
-      return;
+
+    // Validasi password
+    if (!password) {
+      errors.password = "Password harus diisi!";
+    } else if (password.length < 8) {
+      errors.password = "Password harus memiliki minimal 8 karakter!";
     }
-    const existingOwnerNotelepon = await Owner.findOne({ no_telepon });
-    if (existingOwnerNotelepon) {
+
+    // Validasi nomor telepon
+    if (!no_telepon) {
+      errors.no_telepon = "Nomor telepon harus diisi!";
+    } else {
+      const existingOwnerPhone = await Owner.findOne({ no_telepon });
+      if (existingOwnerPhone) {
+        errors.no_telepon = "Nomor telepon sudah digunakan oleh owner lain!";
+      }
+    }
+
+    // Jika ada error, kirim respons dengan format error sebagai objek
+    if (Object.keys(errors).length > 0) {
       res.status(400).json({
         status: "Failed",
-        message: "No telepon sudah digunakan!",
+        message: "Validasi gagal",
+        errors,
       });
       return;
     }
 
+    // Hash password dan simpan ke database
     const hashedPassword = await bcrypt.hash(password, 10);
     const owner = new Owner({
       nama,
@@ -69,13 +65,20 @@ export const registerOwner = async (
     });
 
     await owner.save();
+
+    // Respons sukses
     res.status(201).json({
       status: "Success",
       message: "Owner berhasil dibuat",
       data: owner,
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    // Respons error server
+    res.status(500).json({
+      status: "Failed",
+      message: "Terjadi kesalahan pada server!",
+      errors: { server: "Terjadi kesalahan pada server!" },
+    });
   }
 };
 
@@ -86,34 +89,52 @@ export const loginOwner = async (
 ): Promise<void> => {
   try {
     const { email, password } = req.body;
+
+    // Simpan semua error dalam objek
+    const errors: Record<string, string> = {};
+
+    // Validasi email
     if (!email) {
+      errors.email = "Email harus diisi!";
+    } else {
+      const owner = await Owner.findOne({ email });
+
+      if (!owner) {
+        errors.email = "Email tidak ditemukan!";
+      }
+    }
+
+    // Validasi password
+    if (!password) {
+      errors.password = "Password harus diisi!";
+    } else {
+      // Periksa owner hanya jika owner ditemukan
+      const owner = await Owner.findOne({ email });
+      if (owner) {
+        const isPasswordValid = await bcrypt.compare(password, owner.password);
+        if (!isPasswordValid) {
+          errors.password = "Password yang Anda masukkan salah!";
+        }
+      }
+    }
+
+    // Jika ada error, kirimkan respons dengan semua error
+    if (Object.keys(errors).length > 0) {
       res.status(400).json({
         status: "Failed",
-        message: "Email harus di isi!",
-      });
-      return;
-    } else if (!password) {
-      res.status(400).json({
-        status: "Failed",
-        message: "Password harus di isi!",
+        message: "Validasi gagal",
+        errors,
       });
       return;
     }
+
+    // Validasi berhasil, buat token JWT
     const owner = await Owner.findOne({ email });
     if (!owner) {
-      res.status(400).json({
+      res.status(500).json({
         status: "Failed",
-        message: "Email yang anda masukan salah",
-      });
-      return;
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, owner.password);
-
-    if (!isPasswordValid) {
-      res.status(400).json({
-        status: "Failed",
-        message: "Password yang anda masukan salah",
+        message: "Terjadi kesalahan pada server",
+        errors: { server: "Owner tidak ditemukan setelah validasi!" },
       });
       return;
     }
@@ -127,21 +148,24 @@ export const loginOwner = async (
         foto_profile: owner.foto_profile,
       },
       JWT_SECRET,
-      {
-        expiresIn: "1h",
-      }
+      { expiresIn: "1h" }
     );
 
     res.cookie("tokenOwner", token, {
       secure: process.env.NODE_ENV === "production",
     });
+
     res.json({
       status: "Success",
       message: "Berhasil login",
       token,
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({
+      status: "Failed",
+      message: "Terjadi error pada server",
+      errors: { server: "Error pada server" },
+    });
   }
 };
 
@@ -152,13 +176,18 @@ export const logoutOwner = async (
   res: Response
 ): Promise<void> => {
   try {
-    // Menghapus token di klien
     res.clearCookie("tokenOwner");
     res.json({
       status: "Success",
       message: "Logout berhasil",
     });
   } catch (error) {
-    res.status(500).json({ message: "Server error during logout" });
+    res.status(500).json({
+      status: "Failed",
+      message: "Server error during logout",
+      errors: {
+        server: "Terjadi kesalahan pada server saat logout",
+      },
+    });
   }
 };
