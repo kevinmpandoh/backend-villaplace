@@ -9,6 +9,7 @@ const route = express.Router();
 const {
   getAllPesanan,
   getPesananById,
+  getPesananByIdUser,
   createPesanan,
   updatePesanan,
   deletePesanan,
@@ -16,6 +17,7 @@ const {
 
 route.get("/", getAllPesanan);
 route.post("/", verifyUserLogin, createPesanan);
+route.get("/user", verifyUserLogin, getPesananByIdUser);
 route.get("/:id", getPesananById);
 route.put("/:id", updatePesanan);
 route.delete("/:id", deletePesanan);

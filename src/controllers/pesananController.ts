@@ -74,6 +74,37 @@ const PesananController = {
     }
   },
 
+  getPesananByIdUser: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const user = req.body.userLogin?.userId;
+      const pesanan = await Pesanan.find({
+        user: req.body.userLogin?.userId,
+      }).populate([
+        {
+          path: "villa",
+          populate: [
+            { path: "pemilik_villa", model: "User" },
+            { path: "foto_villa", model: "VillaPhoto" },
+            { path: "ulasan", model: "Ulasan", match: { user: user } },
+          ],
+        },
+        "user",
+      ]);
+
+      return res.status(200).json({
+        status: "success",
+        message: "Success get pesanan by user id",
+        data: pesanan,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        status: "error",
+        message: "Internal Server Error",
+      });
+    }
+  },
+
   createPesanan: async (req: Request, res: Response): Promise<any> => {
     try {
       const errors: Record<string, string> = {};

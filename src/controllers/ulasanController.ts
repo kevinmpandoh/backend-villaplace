@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { Ulasan } from "../models/Ulasan";
+import { Villa } from "../models/villaModel";
 
 const UlasanController = {
   getAllUlasan: async (req: Request, res: Response) => {
@@ -9,6 +10,31 @@ const UlasanController = {
         status: "success",
         message: "Success get all ulasan",
         data: ulasanList,
+      });
+    } catch (error: any) {
+      return res.status(500).json({
+        status: "error",
+        message: error.message,
+      });
+    }
+  },
+
+  getUlasanByIdUser: async (req: Request, res: Response) => {
+    try {
+      const user = req.body.userLogin.userId;
+
+      // cari villa berdasarkan user dan villa nya
+      const ulasan = await Ulasan.find({ user });
+      if (!ulasan) {
+        return res.status(404).json({
+          status: "error",
+          message: "Ulasan not found",
+        });
+      }
+      return res.status(200).json({
+        status: "success",
+        message: "Success get ulasan by villa id",
+        data: ulasan,
       });
     } catch (error: any) {
       return res.status(500).json({
@@ -42,6 +68,12 @@ const UlasanController = {
         user: userId,
         villa: villa,
       });
+
+      await Villa.findByIdAndUpdate(
+        villa,
+        { $push: { ulasan: newUlasan._id } },
+        { new: true }
+      );
 
       await newUlasan.save();
       return res.status(201).json({
@@ -89,7 +121,7 @@ const UlasanController = {
       const updatedUlasan = await Ulasan.findByIdAndUpdate(
         id,
         { komentar, rating },
-        { new: true, runValidators: true },
+        { new: true, runValidators: true }
       );
       if (!updatedUlasan) {
         return res.status(404).json({
