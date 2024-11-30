@@ -54,7 +54,7 @@ export const updateUserById = async (
 ): Promise<void> => {
   try {
     const { id } = req.params;
-    const { email, no_telepon } = req.body;
+    const { email, no_telepon, nama } = req.body;
 
     // Objek untuk menyimpan error
     const errors: { [key: string]: string } = {};
@@ -94,7 +94,7 @@ export const updateUserById = async (
     // Jika tidak ada error, lanjutkan dengan update data user
     const updatedUser = await User.findByIdAndUpdate(
       id,
-      { email, no_telepon },
+      { email, no_telepon, nama },
       { new: true }
     );
 
@@ -205,16 +205,6 @@ export const changePasswordUser = async (
       errors.newPassword = "Password baru harus memiliki minimal 8 karakter!";
     }
 
-    // Jika ada error, kirimkan semua error dalam satu response
-    if (Object.keys(errors).length > 0) {
-      res.status(400).json({
-        status: "Failed",
-        message: "Validasi gagal",
-        errors,
-      });
-      return;
-    }
-
     const userId = req.body.userLogin.userId; // Ambil userId dari userLogin di req.body
     const user = await User.findById(userId);
 
@@ -233,16 +223,17 @@ export const changePasswordUser = async (
     const isMatch = await bcrypt.compare(currentPassword, user.password);
 
     if (!isMatch) {
+      errors.currentPassword = "Password lama tidak sesuai!";
+    }
+    // Jika ada error, kirimkan semua error dalam satu response
+    if (Object.keys(errors).length > 0) {
       res.status(400).json({
         status: "Failed",
-        error: {
-          message: "Password yang anda masukan salah",
-          field: "currentPassword",
-        },
+        message: "Validasi gagal",
+        errors,
       });
       return;
     }
-
     const hashedNewPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedNewPassword;
     await user.save();
