@@ -1,7 +1,10 @@
 import { Router } from "express";
+const { verifyUserLogin, verifyOwner } = require("../middleware/verifyToken");
 const {
   getAllPembayaran,
   getPembayaranById,
+  getPembayaranByIdUser,
+  getPembayaranByMonth,
   createPembayaran,
   updatePembayaran,
   deletePembayaran,
@@ -11,6 +14,8 @@ const {
 const router = Router();
 
 router.get("/", getAllPembayaran);
+router.get("/user", verifyUserLogin, getPembayaranByIdUser);
+router.get("/chart", verifyOwner, getPembayaranByMonth);
 router.get("/:id", getPembayaranById);
 router.post("/", createPembayaran);
 router.put("/:id", updatePembayaran);

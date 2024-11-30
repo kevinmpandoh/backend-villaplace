@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Pembayaran } from "../models/pembayaranModel";
 import { Pesanan } from "../models/pesananModel";
 const midtransClient = require("midtrans-client");
+const mongoose = require("mongoose");
 
 const PembayaranController = {
   getAllPembayaran: async (req: Request, res: Response) => {
@@ -65,6 +66,161 @@ const PembayaranController = {
         status: "success",
         message: "Success get pembayaran by id",
         data: pembayaran,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        status: "error",
+        message: "Internal Server Error",
+      });
+    }
+  },
+
+  getPembayaranByMonth: async (req: Request, res: Response) => {
+    try {
+      const ownerId = req.body.owner.ownerId;
+      const { range } = req.query; // Filter bulan (1-6 atau 7-12)
+
+      if (!range || (range !== "1-6" && range !== "7-12")) {
+        return res
+          .status(400)
+          .json({ message: "Invalid range. Use '1-6' or '7-12'." });
+      }
+
+      // Tentukan range bulan
+      const [startMonth, endMonth] = range === "1-6" ? [1, 6] : [7, 12];
+
+      // Aggregation untuk menghitung jumlah pembayaran per bulan
+      const pembayaranData = await Pembayaran.aggregate([
+        {
+          $lookup: {
+            from: "pesanans",
+            localField: "pesanan",
+            foreignField: "_id",
+            as: "pesanan",
+          },
+        },
+        { $unwind: "$pesanan" },
+        {
+          $lookup: {
+            from: "villas",
+            localField: "pesanan.villa",
+            foreignField: "_id",
+            as: "pesanan.villa",
+          },
+        },
+        { $unwind: "$pesanan.villa" },
+        {
+          $match: {
+            "pesanan.villa.pemilik_villa": new mongoose.Types.ObjectId(ownerId), // Filter berdasarkan pemilik villa
+          },
+        },
+        {
+          $addFields: {
+            bulanPembayaran: { $month: "$tanggal_pembayaran" }, // Tambahkan bulan pembayaran
+          },
+        },
+        {
+          $match: {
+            bulanPembayaran: { $gte: startMonth, $lte: endMonth }, // Filter berdasarkan bulan
+          },
+        },
+        {
+          $group: {
+            _id: "$bulanPembayaran", // Kelompokkan berdasarkan bulan pembayaran
+            totalPembayaran: { $sum: "$jumlah_pembayaran" }, // Jumlahkan pembayaran
+            count: { $sum: 1 }, // Hitung jumlah transaksi
+          },
+        },
+        {
+          $sort: { _id: 1 }, // Urutkan berdasarkan bulan
+        },
+        {
+          $addFields: {
+            bulan: {
+              $arrayElemAt: [
+                [
+                  "",
+                  "January",
+                  "February",
+                  "March",
+                  "April",
+                  "May",
+                  "June",
+                  "July",
+                  "August",
+                  "September",
+                  "October",
+                  "November",
+                  "December",
+                ],
+                "$_id",
+              ],
+            }, // Konversi angka bulan ke nama bulan
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            bulan: 1,
+            totalPembayaran: 1,
+            count: 1,
+          },
+        },
+      ]);
+
+      // Hitung total keseluruhan pembayaran
+      const totalKeseluruhan = pembayaranData.reduce(
+        (acc, curr) => acc + curr.totalPembayaran,
+        0
+      );
+
+      res.status(200).json({
+        status: "success",
+        data: pembayaranData,
+        totalKeseluruhan,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        status: "error",
+        message: "Internal Server Error",
+      });
+    }
+  },
+
+  getPembayaranByIdUser: async (req: Request, res: Response) => {
+    try {
+      const userId = req.body.userLogin.userId;
+
+      // Cari pembayaran berdasarkan pesanan yang dimiliki user tersebut
+      const pembayaran = await Pembayaran.find()
+        .populate({
+          path: "pesanan",
+          match: { user: userId }, // Filter pesanan berdasarkan user
+          populate: [
+            {
+              path: "villa",
+              populate: [
+                {
+                  path: "foto_villa",
+                  model: "VillaPhoto",
+                },
+              ],
+            },
+          ],
+        })
+        .exec();
+
+      // Hapus pembayaran yang tidak memiliki pesanan sesuai user
+      const filteredPembayaran = pembayaran.filter(
+        (item) => item.pesanan !== null
+      );
+
+      return res.status(200).json({
+        status: "success",
+        message: "Success get pembayaran by id user",
+        data: filteredPembayaran,
       });
     } catch (error) {
       console.log(error);
