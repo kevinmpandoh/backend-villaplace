@@ -6,8 +6,6 @@ const pesananSchema: Schema = new Schema(
   {
     harga: { type: Number, required: true },
     jumlah_orang: { type: Number, required: true },
-    nama_pembayar: { type: String, required: true },
-    email_pembayar: { type: String, required: true },
     catatan: { type: String },
     status: { type: String, default: "pending" },
     tanggal_mulai: { type: Date, required: true },

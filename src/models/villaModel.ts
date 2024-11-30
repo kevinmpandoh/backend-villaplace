@@ -23,6 +23,12 @@ const VillaSchema: Schema = new Schema(
       required: true,
     },
     status: { type: String, required: true, default: "pending" },
+    ulasan: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Ulasan",
+      },
+    ],
   },
   { timestamps: true }
 );
