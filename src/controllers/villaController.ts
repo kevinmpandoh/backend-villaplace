@@ -105,6 +105,7 @@ const VillaController = {
         page = 1,
         limit = 10,
         showPending,
+        showRejected,
       } = req.query;
   
       const { id } = req.params;
@@ -117,6 +118,8 @@ const VillaController = {
   
       if (showPending === "true") {
         query.status = "pending";
+      } else if (showRejected === "true") {
+        query.status = "rejected"
       }
   
       if (searchQuery) {

@@ -7,6 +7,7 @@ const router = Router();
 const {
   getAllVillas,
   getAllVillasOwner,
+  getAllVillasAdmin,
   getVillaById,
   createVilla,
   updateVilla,
@@ -20,6 +21,7 @@ const {
 
 router.get("/", getAllVillas);
 router.get("/owner/:id", verifyOwner, getAllVillasOwner);
+router.get("/admin/:id", verifyOwner, getAllVillasAdmin);
 
 router.get("/:id", getVillaById);
 router.post("/", verifyOwner, createVilla);
