@@ -209,19 +209,19 @@ const VillaController = {
       const villa = await Villa.findById(req.params.id).populate(
         "pemilik_villa foto_villa"
       );
-
+  
       if (!villa) {
         return res.status(404).json({
           status: "error",
           message: "Villa not found",
         });
       }
-
+  
       // Pesanan
       const pesanans = await Pesanan.find({ villa: req.params.id })
         .populate("user")
         .exec();
-
+  
       // Ulasan
       const ulasans = await Ulasan.find({ villa: req.params.id })
         .populate("user")
@@ -233,7 +233,20 @@ const VillaController = {
       const averageRating =
         ulasans.length > 0 ? totalRating / ulasans.length : 0;
       const commentCount = ulasans.length;
-
+  
+      // Calculate percentage of each star rating
+      const starCount = [0, 0, 0, 0, 0]; // Array to store count for 1 to 5 stars
+  
+      ulasans.forEach((ulasan) => {
+        if (ulasan.rating >= 1 && ulasan.rating <= 5) {
+          starCount[ulasan.rating - 1] += 1; // Increment count for the rating
+        }
+      });
+  
+      const starPercentage = starCount.map(
+        (count) => (ulasans.length > 0 ? (count / ulasans.length) * 100 : 0)
+      );
+  
       return res.status(200).json({
         status: "success",
         message: "Success get villa by id",
@@ -248,6 +261,7 @@ const VillaController = {
             _id: ulasan._id,
           })),
           pesanans: pesanans,
+          starPercentage: starPercentage, // Add the star rating percentage
         },
       });
     } catch (error) {
@@ -258,6 +272,7 @@ const VillaController = {
       });
     }
   },
+  
 
   createVilla: async (req: Request, res: Response) => {
     try {
