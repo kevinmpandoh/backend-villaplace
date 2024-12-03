@@ -25,7 +25,7 @@ router.post(
   upload.single("foto_profile"),
   uploadProfileImagesOwner
 );
-router.get("/", verifyOwner, getAllOwners);
+router.get("/", verifyAdmin, getAllOwners);
 router.put("/change-password", verifyOwner, changePasswordOwner);
 router.get("/current-owner", verifyOwner, getOwnerCurrent);
 router.get("/:id", getOwnerById);

@@ -12,7 +12,7 @@ const {
   deleteAdminById,
 } = require("../controllers/adminController");
 
-router.post("/", createAdmin);
+router.post("/", verifyAdmin, createAdmin);
 router.get("/", verifyAdmin, getAllAdmins);
 router.get("/current-admin", verifyAdmin, getAdminCurrent);
 router.get("/:id", verifyAdmin, getAdminById);

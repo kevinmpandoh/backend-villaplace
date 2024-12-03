@@ -20,7 +20,7 @@ router.post(
   uploadProfileImagesUser
 );
 
-router.get("/", getAllUsers);
+router.get("/", verifyAdmin, getAllUsers);
 router.get("/current-user", verifyUserLogin, getUserCurrent);
 router.put("/change-password", verifyUserLogin, changePasswordUser);
 router.get("/:id", verifyUserLogin, getUserById);

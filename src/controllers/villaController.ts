@@ -102,28 +102,23 @@ const VillaController = {
     try {
       const {
         searchQuery,
-        harga_min,
-        harga_max,
         page = 1,
         limit = 10,
-        showPending, // Optional query parameter
+        showPending,
       } = req.query;
   
-      const { id } = req.params;  // Extract owner ID from URL params
+      const { id } = req.params;
   
       const query: any = {};
   
-      // Filter by owner ID if provided
       if (id) {
         query.pemilik_villa = id;
       }
   
-      // Add filter for pending villas if showPending is true
       if (showPending === "true") {
-        query.status = "pending";  // Assuming `status` field tracks villa approval state
+        query.status = "pending";
       }
   
-      // If a search query is provided, filter by it
       if (searchQuery) {
         const sanitizedSearchQuery = searchQuery.toString().replace(/\./g, "");
   
@@ -140,11 +135,93 @@ const VillaController = {
           });
         }
       }
+      // Pagination setup
+      const pageNumber = Number(page);
+      const limitNumber = Number(limit);
   
-      // Filter by price range (harga_min, harga_max)
-      if (harga_min) query.harga = { ...query.harga, $gte: Number(harga_min) };
-      if (harga_max) query.harga = { ...query.harga, $lte: Number(harga_max) };
+      // Get villas based on the query, with pagination and population
+      const villas = await Villa.find(query)
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber)
+        .populate("pemilik_villa foto_villa");
   
+      // Enrich the villa data with rating and comment count
+      const villaDetails = await Promise.all(
+        villas.map(async (villa) => {
+          const ulasans = await Ulasan.find({ villa: villa._id })
+            .populate("user")
+            .exec();
+          const totalRating = ulasans.reduce(
+            (sum, ulasan) => sum + ulasan.rating,
+            0
+          );
+          const averageRating =
+            ulasans.length > 0 ? totalRating / ulasans.length : 0;
+          const commentCount = ulasans.length;
+  
+          return {
+            ...villa.toObject(),
+            averageRating: averageRating,
+            commentCount: commentCount,
+          };
+        })
+      );
+  
+      // Get the total number of villas and calculate total pages for pagination
+      const totalVillas = await Villa.countDocuments(query);
+      const totalPages = Math.ceil(totalVillas / limitNumber);
+  
+      return res.status(200).json({
+        status: "success",
+        message: "Success get all villas",
+        pagination: {
+          totalVillas,
+          totalPages,
+          currentPage: pageNumber,
+          limit: limitNumber,
+        },
+        data: villaDetails,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        status: "error",
+        message: "Internal Server Error",
+      });
+    }
+  },
+  getAllVillasAdmin: async (req: Request, res: Response) => {
+    try {
+      const {
+        searchQuery,
+        page = 1,
+        limit = 10,
+        showPending,
+      } = req.query;
+    
+      const query: any = {};
+  
+      if (showPending === "true") {
+        query.status = "pending";
+      }
+  
+      if (searchQuery) {
+        const sanitizedSearchQuery = searchQuery.toString().replace(/\./g, "");
+  
+        query.$or = [
+          { nama: { $regex: searchQuery, $options: "i" } },
+          { lokasi: { $regex: searchQuery, $options: "i" } },
+          { kategori: { $elemMatch: { $regex: searchQuery, $options: "i" } } },
+        ];
+  
+        if (!isNaN(Number(sanitizedSearchQuery))) {
+          query.$or.push({ harga: Number(sanitizedSearchQuery) });
+          query.$or.push({
+            harga: { $regex: new RegExp(sanitizedSearchQuery, "i") },
+          });
+        }
+      }
+
       // Pagination setup
       const pageNumber = Number(page);
       const limitNumber = Number(limit);
