@@ -6,6 +6,7 @@ const { verifyAdmin, verifyOwner } = require("../middleware/verifyToken");
 const router = Router();
 const {
   getAllVillas,
+  getAllVillasOwner,
   getVillaById,
   createVilla,
   updateVilla,
@@ -18,6 +19,8 @@ const {
 } = require("../controllers/villaController");
 
 router.get("/", getAllVillas);
+router.get("/owner/:id", verifyOwner, getAllVillasOwner);
+
 router.get("/:id", getVillaById);
 router.post("/", verifyOwner, createVilla);
 router.put("/:id", verifyOwner, updateVilla);
