@@ -4,7 +4,6 @@ import { VillaPhoto } from "../models/villaPhotoModel";
 import { Ulasan } from "../models/Ulasan";
 import { Favorite } from "../models/Favorite";
 import { Pesanan } from "../models/pesananModel";
-import Owner from "../models/ownerModel";
 
 import fs from "fs";
 import path from "path";
@@ -198,12 +197,16 @@ const VillaController = {
   },
   getAllVillasAdmin: async (req: Request, res: Response) => {
     try {
-      const { searchQuery, page = 1, limit = 10, showPending } = req.query;
+      const { searchQuery, page = 1, limit = 10, showPending, showSuccess, showRejected } = req.query;
 
       const query: any = {};
 
       if (showPending === "true") {
         query.status = "pending";
+      } else if (showRejected === "true") {
+        query.status = "rejected";
+      } else if (showSuccess === "true") {
+        query.status = "success";
       }
 
       if (searchQuery) {
