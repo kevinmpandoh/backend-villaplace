@@ -20,8 +20,8 @@ const {
 } = require("../controllers/villaController");
 
 router.get("/", getAllVillas);
-router.get("/owner/:id", verifyOwner, getAllVillasOwner);
-router.get("/admin/:id", verifyOwner, getAllVillasAdmin);
+router.get("/owner/", verifyOwner, getAllVillasOwner);
+router.get("/admin/", verifyOwner, getAllVillasAdmin);
 
 router.get("/:id", getVillaById);
 router.post("/", verifyOwner, createVilla);
