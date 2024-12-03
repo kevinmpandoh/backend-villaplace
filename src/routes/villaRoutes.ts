@@ -21,7 +21,7 @@ const {
 
 router.get("/", getAllVillas);
 router.get("/owner/", verifyOwner, getAllVillasOwner);
-router.get("/admin/", verifyOwner, getAllVillasAdmin);
+router.get("/admin/", verifyAdmin, getAllVillasAdmin);
 
 router.get("/:id", getVillaById);
 router.post("/", verifyOwner, createVilla);
