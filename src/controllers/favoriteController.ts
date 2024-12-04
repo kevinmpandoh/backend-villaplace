@@ -11,11 +11,33 @@ const favoriteController = {
           {
             path: "kategori",
           },
+          {
+            path: "foto_villa",
+          },
         ],
       });
       return res.status(200).json({
         status: "success",
         message: "Success get all favorite for user",
+        data: favorite,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        status: "error",
+        message: "Internal Server Error",
+      });
+    }
+  },
+
+  getFavoriteByVilla: async (req: Request, res: Response) => {
+    try {
+      const userId = req.body.userLogin.userId;
+      const { id } = req.params;
+      const favorite = await Favorite.findOne({ villa: id, user: userId });
+      return res.status(200).json({
+        status: "success",
+        message: "Success get favorite by villa",
         data: favorite,
       });
     } catch (error) {
@@ -67,16 +89,19 @@ const favoriteController = {
     try {
       const userId = req.body.userLogin.userId;
       const { id } = req.params;
-  
-      const deletedFavorite = await Favorite.findOneAndDelete({ _id: id, user: userId });
-  
+
+      const deletedFavorite = await Favorite.findOneAndDelete({
+        _id: id,
+        user: userId,
+      });
+
       if (!deletedFavorite) {
         return res.status(404).json({
           status: "error",
           message: "Favorite not found for this user",
         });
       }
-  
+
       return res.status(200).json({
         status: "success",
         message: "Favorite deleted successfully",
@@ -92,11 +117,14 @@ const favoriteController = {
 
   deleteFavoriteByDetail: async (req: Request, res: Response) => {
     try {
-      const userId = req.body.userLogin.userId; 
+      const userId = req.body.userLogin.userId;
       const { id } = req.params;
 
-      const deletedFavorite = await Favorite.findOneAndDelete({ villa: id, user: userId });
-      
+      const deletedFavorite = await Favorite.findOneAndDelete({
+        villa: id,
+        user: userId,
+      });
+
       if (!deletedFavorite) {
         return res.status(404).json({
           status: "error",
@@ -115,6 +143,6 @@ const favoriteController = {
         message: "Internal Server Error",
       });
     }
-  }
+  },
 };
 module.exports = favoriteController;

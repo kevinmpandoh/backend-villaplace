@@ -115,6 +115,7 @@ const PesananController = {
         harga,
         jumlah_orang,
         catatan,
+        status,
       } = req.body;
 
       const userId = req.body.userLogin?.userId;
@@ -184,6 +185,7 @@ const PesananController = {
         jumlah_orang,
         catatan,
         user: userId,
+        status,
       });
       const savedPesanan = await newPesanan.save();
 
