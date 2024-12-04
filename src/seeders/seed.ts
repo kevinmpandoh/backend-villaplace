@@ -7,7 +7,9 @@ import adminSeeder from "./adminSeeder";
 const main = async () => {
   try {
     // Koneksi ke database
-    await mongoose.connect("mongodb://localhost:27017/villaplace");
+    await mongoose.connect(
+      process.env.MONGODB_URI || "mongodb://localhost:27017/villaplace"
+    );
     console.log("Connected to MongoDB");
 
     // Jalankan seeder setelah koneksi berhasil

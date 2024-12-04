@@ -7,7 +7,7 @@ export interface IPembayaran extends Document {
   status_pembayaran: string;
   tanggal_pembayaran: Date;
   metode_pembayaran: string;
-  tipe_pembayaran: string;
+  bank: string;
   jumlah_pembayaran: number;
   expiry_time: Date;
   nomor_va?: string | null;

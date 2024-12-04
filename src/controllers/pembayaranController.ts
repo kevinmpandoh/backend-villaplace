@@ -231,6 +231,24 @@ const PembayaranController = {
     }
   },
 
+  getMidtransStatus: async (req: Request, res: Response) => {
+    try {
+      const { order_id } = req.params;
+      const snap = new midtransClient.Snap({
+        isProduction: false,
+        serverKey: process.env.MIDTRANS_SERVER_KEY,
+      });
+      const status = await snap.transaction.status(order_id);
+
+      res.status(200).json({
+        message: `Get status payment by order id ${order_id} successfull`,
+        data: status,
+      });
+    } catch (error) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
   createPembayaran: async (req: Request, res: Response) => {
     try {
       const {
@@ -240,7 +258,7 @@ const PembayaranController = {
         status_pembayaran,
         tanggal_pembayaran,
         metode_pembayaran,
-        tipe_pembayaran,
+        bank,
         jumlah_pembayaran,
         expiry_time,
         nomor_va,
@@ -248,19 +266,6 @@ const PembayaranController = {
       } = req.body;
 
       const errors: Record<string, string> = {};
-
-      // switch (tipe_pembayaran) {
-      //   case "virtual_account":
-      //     if (!nomor_va) {
-      //       errors.nomor_va = "Nomor VA is required";
-      //     }
-      //     break;
-      //   case "credit_card":
-      //     break;
-      //   default:
-      //     errors.tipe_pembayaran = "Invalid payment type";
-      //     break;
-      // }
 
       if (!nama_pembayar) {
         errors.nama_pembayar = "Nama pembayar is required";
@@ -286,8 +291,8 @@ const PembayaranController = {
         errors.metode_pembayaran = "Metode pembayaran is required";
       }
 
-      if (!tipe_pembayaran) {
-        errors.tipe_pembayaran = "Tipe pembayaran is required";
+      if (!bank) {
+        errors.bank = "Bank is required";
       }
 
       if (!jumlah_pembayaran) {
@@ -332,7 +337,7 @@ const PembayaranController = {
         status_pembayaran,
         tanggal_pembayaran,
         metode_pembayaran,
-        tipe_pembayaran,
+        bank,
         jumlah_pembayaran,
         expiry_time,
         nomor_va,
@@ -366,7 +371,7 @@ const PembayaranController = {
         status_pembayaran,
         tanggal_pembayaran,
         metode_pembayaran,
-        tipe_pembayaran,
+        bank,
         jumlah_pembayaran,
         expiry_time,
         nomor_va,
@@ -397,8 +402,8 @@ const PembayaranController = {
         errors.metode_pembayaran = "Metode pembayaran is required";
       }
 
-      if (!tipe_pembayaran) {
-        errors.tipe_pembayaran = "Tipe pembayaran is required";
+      if (!bank) {
+        errors.bank = "Tipe pembayaran is required";
       }
 
       if (!jumlah_pembayaran) {
@@ -447,7 +452,7 @@ const PembayaranController = {
           status_pembayaran,
           tanggal_pembayaran,
           metode_pembayaran,
-          tipe_pembayaran,
+          bank,
           jumlah_pembayaran,
           expiry_time,
           nomor_va,
@@ -547,9 +552,28 @@ const PembayaranController = {
           order_id: kode_pembayaran,
           gross_amount: jumlah_pembayaran,
         },
-        credit_card: {
-          secure: true,
-        },
+        enabled_payments: [
+          "credit_card",
+          "cimb_clicks",
+          "bca_klikbca",
+          "bca_klikpay",
+          "bri_epay",
+          "echannel",
+          "permata_va",
+          "bca_va",
+          "bni_va",
+          "bri_va",
+          "cimb_va",
+          "other_va",
+          "gopay",
+          "indomaret",
+          "danamon_online",
+          "akulaku",
+          "shopeepay",
+          "kredivo",
+          "uob_ezpay",
+          "other_qris",
+        ],
         customer_details: {
           first_name: nama_pembayar,
           email: email_pembayar,

@@ -11,7 +11,7 @@ const PembayaranSchema = new Schema<IPembayaran>(
     metode_pembayaran: { type: String, required: true },
     jumlah_pembayaran: { type: Number, required: true },
     expiry_time: { type: Date, required: true },
-    tipe_pembayaran: { type: String, required: true },
+    bank: { type: String, required: true },
     nomor_va: { type: String, default: null },
     pdf_url: { type: String },
     pesanan: { type: Schema.Types.ObjectId, ref: "Pesanan", required: true },
