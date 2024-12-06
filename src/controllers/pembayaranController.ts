@@ -7,27 +7,67 @@ const mongoose = require("mongoose");
 const PembayaranController = {
   getAllPembayaran: async (req: Request, res: Response) => {
     try {
-      const pembayaran = await Pembayaran.find().populate([
-        {
-          path: "pesanan",
-          populate: [
-            {
-              path: "villa",
-              populate: [
-                {
-                  path: "foto_villa",
-                  model: "VillaPhoto",
-                },
-              ],
-            },
-          ],
-        },
-      ]);
+      const { searchQuery, page = 1, limit = 5 } = req.query;
+
+      // Konversi page dan limit menjadi angka
+      const pageNumber = Number(page);
+      const limitNumber = Number(limit);
+
+      const query: any = {};
+
+      if (searchQuery) {
+        const sanitizedSearchQuery = searchQuery.toString().replace(/\./g, "");
+
+        query.$or = [
+          { email_pembayar: { $regex: searchQuery, $options: "i" } },
+          { nama_pembayar: { $regex: searchQuery, $options: "i" } },
+          { kode_pembayaran: { $regex: searchQuery, $options: "i" } },
+          { metode_pembayaran: { $regex: searchQuery, $options: "i" } },
+          { bank: { $regex: searchQuery, $options: "i" } },
+          { nomor_va: { $regex: searchQuery, $options: "i" } },
+          { "pesanan.villa.nama": { $regex: searchQuery, $options: "i" } },
+        ];
+      }
+
+      const pembayaran = await Pembayaran.find(query)
+        .sort({ createdAt: -1 })
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber)
+        .populate([
+          {
+            path: "pesanan",
+            populate: [
+              {
+                path: "villa",
+                populate: [
+                  {
+                    path: "foto_villa",
+                    model: "VillaPhoto",
+                  },
+                ],
+              },
+            ],
+          },
+        ]);
+
+      // Hapus pembayaran yang tidak memiliki pesanan sesuai user
+      const filteredPembayaran = pembayaran.filter(
+        (item) => item.pesanan !== null
+      );
+
+      const totalPayments = await Pembayaran.countDocuments(query);
+      const totalPages = Math.ceil(totalPayments / limitNumber);
 
       return res.status(200).json({
         status: "success",
         message: "Success get all pembayaran",
-        data: pembayaran,
+        pagination: {
+          totalItems: totalPayments,
+          totalPages,
+          currentPage: pageNumber,
+          limit: limitNumber,
+        },
+        data: filteredPembayaran,
       });
     } catch (error) {
       console.log(error);
@@ -66,6 +106,81 @@ const PembayaranController = {
         status: "success",
         message: "Success get pembayaran by id",
         data: pembayaran,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        status: "error",
+        message: "Internal Server Error",
+      });
+    }
+  },
+
+  getPembayaranByIdOwner: async (req: Request, res: Response) => {
+    try {
+      const ownerId = req.body.owner.ownerId;
+
+      const { searchQuery, page = 1, limit = 5 } = req.query;
+
+      // Konversi page dan limit menjadi angka
+      const pageNumber = Number(page);
+      const limitNumber = Number(limit);
+
+      const query: any = {};
+
+      if (searchQuery) {
+        const sanitizedSearchQuery = searchQuery.toString().replace(/\./g, "");
+
+        query.$or = [
+          { email_pembayar: { $regex: searchQuery, $options: "i" } },
+          { nama_pembayar: { $regex: searchQuery, $options: "i" } },
+          { kode_pembayaran: { $regex: searchQuery, $options: "i" } },
+          { metode_pembayaran: { $regex: searchQuery, $options: "i" } },
+          { bank: { $regex: searchQuery, $options: "i" } },
+          { nomor_va: { $regex: searchQuery, $options: "i" } },
+          { "pesanan.villa.nama": { $regex: searchQuery, $options: "i" } },
+        ];
+      }
+
+      const pembayaran = await Pembayaran.find(query)
+        .sort({ createdAt: -1 })
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber)
+        .populate({
+          path: "pesanan",
+          populate: [
+            {
+              path: "villa",
+              match: { pemilik_villa: ownerId },
+              populate: [
+                {
+                  path: "foto_villa",
+                  model: "VillaPhoto",
+                },
+              ],
+            },
+          ],
+        })
+        .exec();
+
+      // Hapus pembayaran yang tidak memiliki pesanan sesuai user
+      const filteredPembayaran = pembayaran.filter(
+        (item) => item.pesanan !== null
+      );
+
+      const totalPayments = await Pembayaran.countDocuments(query);
+      const totalPages = Math.ceil(totalPayments / limitNumber);
+
+      return res.status(200).json({
+        status: "success",
+        message: "Success get pembayaran by id user",
+        pagination: {
+          totalItems: totalPayments,
+          totalPages,
+          currentPage: pageNumber,
+          limit: limitNumber,
+        },
+        data: filteredPembayaran,
       });
     } catch (error) {
       console.log(error);

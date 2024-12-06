@@ -5,6 +5,7 @@ const {
   getPembayaranById,
   getPembayaranByIdUser,
   getMidtransStatus,
+  getPembayaranByIdOwner,
   getPembayaranByMonth,
   createPembayaran,
   updatePembayaran,
@@ -17,6 +18,7 @@ const router = Router();
 router.get("/", getAllPembayaran);
 router.get("/user", verifyUserLogin, getPembayaranByIdUser);
 router.get("/chart", verifyOwner, getPembayaranByMonth);
+router.get("/owner", verifyOwner, getPembayaranByIdOwner);
 router.get("/status/:order_id", getMidtransStatus);
 router.get("/:id", getPembayaranById);
 router.post("/", createPembayaran);
