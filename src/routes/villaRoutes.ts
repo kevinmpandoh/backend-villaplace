@@ -1,5 +1,6 @@
 import { Router } from "express";
 import upload from "../config/multerConfig";
+import { verifyAdminOwner } from "../middleware/verifyToken";
 
 const { verifyAdmin, verifyOwner } = require("../middleware/verifyToken");
 
@@ -26,7 +27,7 @@ router.get("/admin/", verifyAdmin, getAllVillasAdmin);
 router.get("/:id", getVillaById);
 router.post("/", verifyOwner, createVilla);
 router.put("/:id", verifyOwner, updateVilla);
-router.delete("/:id", verifyAdmin, deleteVilla);
+router.delete("/:id", verifyAdminOwner, deleteVilla);
 router.post(
   "/:id/upload-villa",
   upload.array("foto_villa", 10),
