@@ -4,19 +4,21 @@ const router = Router();
 const {
   getAllUlasan,
   getUlasanByIdUser,
+  getAllUlasanByOwner,
   createUlasan,
   getUlasanById,
   updateUlasanById,
   deleteUlasanByUser,
   deleteUlasan,
 } = require("../controllers/ulasanController");
-const { verifyUserLogin, verifyAdmin } = require("../middleware/verifyToken");
+const { verifyUserLogin, verifyAdmin, verifyOwner } = require("../middleware/verifyToken");
 router.get("/", verifyAdmin, getAllUlasan);
-router.get("/user/", verifyUserLogin, getUlasanByIdUser);
+router.get("/owner/", verifyOwner, getAllUlasanByOwner);
 router.get("/:id", verifyAdmin, getUlasanById);
+router.delete("/admin/:id", verifyAdmin, deleteUlasan);
+router.get("/:id", verifyOwner, getUlasanById);
+router.get("/user/", verifyUserLogin, getUlasanByIdUser);
 router.post("/", verifyUserLogin, createUlasan);
 router.put("/:id", verifyUserLogin, updateUlasanById);
-router.delete("/:id", verifyUserLogin, deleteUlasanByUser);
-router.delete("/admin/:id", verifyAdmin, deleteUlasan);
-
+router.delete("/:id", verifyUserLogin, deleteUlasanByUser)
 module.exports = router;

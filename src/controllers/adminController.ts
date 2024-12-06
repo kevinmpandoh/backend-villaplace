@@ -5,10 +5,12 @@ import bcrypt from "bcrypt";
 const adminController = {
   getAllAdmins: async (req: Request, res: Response): Promise<void> => {
     try {
-      const admins = await Admin.find({}, "-password"); // Exclude password field
+      
+      const admins = await Admin.find({},"-password"); // Exclude password field
+  
       res.json({
         status: "Success",
-        message: "Success get all admins",
+        message: "Successfully retrieved admins",
         data: admins,
       });
     } catch (error: any) {
