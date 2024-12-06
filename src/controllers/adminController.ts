@@ -1,9 +1,46 @@
 import { Request, Response } from "express";
 import { Admin } from "../models/adminModel";
+import User from "../models/userModel";
+import Owner from "../models/ownerModel";
+import {Pesanan} from "../models/pesananModel";
+import { Villa } from "../models/villaModel";
+
 import bcrypt from "bcrypt";
 
 const adminController = {
-  getAllAdmins: async (req: Request, res: Response): Promise<void> => {
+  dashboardAdmin: async (req: Request, res: Response): Promise<void> => {
+    try {
+      const ownerCount = await Owner.countDocuments();
+
+      // Count the number of users
+      const userCount = await User.countDocuments();
+  
+      // Count the number of orders (pesanan)
+      const pesananCount = await Pesanan.countDocuments();
+  
+      // Count the number of posts (postingan)
+      const villaCount = await Villa.countDocuments();
+  
+      // Send the counts in the response
+      res.status(200).json({
+        success: true,
+        data: {
+          ownerCount,
+          userCount,
+          pesananCount,
+          villaCount,
+        },
+      });
+    } catch (error: any) {
+      // Handle any errors
+      console.error(error);
+      res.status(500).json({
+        success: false,
+        message: "Something went wrong while fetching dashboard data.",
+      });
+    }
+  },
+    getAllAdmins: async (req: Request, res: Response): Promise<void> => {
     try {
       
       const admins = await Admin.find({},"-password"); // Exclude password field

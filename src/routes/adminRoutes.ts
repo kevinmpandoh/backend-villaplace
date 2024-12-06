@@ -3,6 +3,7 @@ const { verifyAdmin } = require("../middleware/verifyToken");
 const router = Router();
 
 const {
+  dashboardAdmin,
   createAdmin,
   getAllAdmins,
   getAdminById,
@@ -11,7 +12,7 @@ const {
   changePasswordAdmin,
   deleteAdminById,
 } = require("../controllers/adminController");
-
+router.get("/dashboard", verifyAdmin, dashboardAdmin);
 router.post("/", verifyAdmin, createAdmin);
 router.get("/", verifyAdmin, getAllAdmins);
 router.get("/current-admin", verifyAdmin, getAdminCurrent);
