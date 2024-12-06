@@ -16,10 +16,10 @@ const VillaController = {
         harga_min,
         harga_max,
         page = 1,
-        limit = 5,
+        limit = 90,
       } = req.query;
       const query: any = {
-        status: "success"
+        status: "success",
       };
       if (searchQuery) {
         const sanitizedSearchQuery = searchQuery.toString().replace(/\./g, "");
@@ -59,7 +59,7 @@ const VillaController = {
             .exec();
           const totalRating = ulasans.reduce(
             (sum, ulasan) => sum + ulasan.rating,
-            0,
+            0
           );
           const averageRating =
             ulasans.length > 0 ? totalRating / ulasans.length : 0;
@@ -70,7 +70,7 @@ const VillaController = {
             averageRating: averageRating,
             commentCount: commentCount,
           };
-        }),
+        })
       );
 
       const totalVillas = await Villa.countDocuments(query);
@@ -101,7 +101,7 @@ const VillaController = {
       const {
         searchQuery,
         page = 1,
-        limit = 10,
+        limit = 90,
         showPending,
         showRejected,
         showSuccess,
@@ -148,6 +148,7 @@ const VillaController = {
       const villas = await Villa.find(query)
         .skip((pageNumber - 1) * limitNumber)
         .limit(limitNumber)
+        .sort({ createdAt: -1 })
         .populate("pemilik_villa foto_villa");
 
       // Enrich the villa data with rating and comment count
@@ -158,7 +159,7 @@ const VillaController = {
             .exec();
           const totalRating = ulasans.reduce(
             (sum, ulasan) => sum + ulasan.rating,
-            0,
+            0
           );
           const averageRating =
             ulasans.length > 0 ? totalRating / ulasans.length : 0;
@@ -169,7 +170,7 @@ const VillaController = {
             averageRating: averageRating,
             commentCount: commentCount,
           };
-        }),
+        })
       );
 
       // Get the total number of villas and calculate total pages for pagination
@@ -197,7 +198,14 @@ const VillaController = {
   },
   getAllVillasAdmin: async (req: Request, res: Response) => {
     try {
-      const { searchQuery, page = 1, limit = 10, showPending, showSuccess, showRejected } = req.query;
+      const {
+        searchQuery,
+        page = 1,
+        limit = 100,
+        showPending,
+        showSuccess,
+        showRejected,
+      } = req.query;
 
       const query: any = {};
 
@@ -234,6 +242,7 @@ const VillaController = {
       const villas = await Villa.find(query)
         .skip((pageNumber - 1) * limitNumber)
         .limit(limitNumber)
+        .sort({ createdAt: -1 })
         .populate("pemilik_villa foto_villa");
 
       // Enrich the villa data with rating and comment count
@@ -244,7 +253,7 @@ const VillaController = {
             .exec();
           const totalRating = ulasans.reduce(
             (sum, ulasan) => sum + ulasan.rating,
-            0,
+            0
           );
           const averageRating =
             ulasans.length > 0 ? totalRating / ulasans.length : 0;
@@ -255,7 +264,7 @@ const VillaController = {
             averageRating: averageRating,
             commentCount: commentCount,
           };
-        }),
+        })
       );
 
       // Get the total number of villas and calculate total pages for pagination
@@ -285,7 +294,7 @@ const VillaController = {
   getVillaById: async (req: Request, res: Response) => {
     try {
       const villa = await Villa.findById(req.params.id).populate(
-        "pemilik_villa foto_villa",
+        "pemilik_villa foto_villa"
       );
 
       if (!villa) {
@@ -306,7 +315,7 @@ const VillaController = {
         .exec();
       const totalRating = ulasans.reduce(
         (sum, ulasan) => sum + ulasan.rating,
-        0,
+        0
       );
       const averageRating =
         ulasans.length > 0 ? totalRating / ulasans.length : 0;
@@ -322,7 +331,7 @@ const VillaController = {
       });
 
       const starPercentage = starCount.map((count) =>
-        ulasans.length > 0 ? (count / ulasans.length) * 100 : 0,
+        ulasans.length > 0 ? (count / ulasans.length) * 100 : 0
       );
 
       return res.status(200).json({
@@ -379,7 +388,7 @@ const VillaController = {
       const updatedVilla = await Villa.findByIdAndUpdate(
         req.params.id,
         req.body,
-        { new: true },
+        { new: true }
       );
       if (!updatedVilla) {
         return res.status(404).json({
@@ -454,13 +463,13 @@ const VillaController = {
             filepath: file.path,
           });
           return photo._id; // Mengembalikan ID foto yang baru dibuat
-        }),
+        })
       );
 
       const villa = await Villa.findByIdAndUpdate(
         villaId,
         { $push: { foto_villa: { $each: photos } } },
-        { new: true },
+        { new: true }
       );
 
       if (!villa) {
@@ -519,7 +528,7 @@ const VillaController = {
 
       // Periksa apakah photoId ada di dalam array photos
       const isPhotoExist = villa.foto_villa.some(
-        (photo) => photo.toString() === photoId,
+        (photo) => photo.toString() === photoId
       );
 
       if (!isPhotoExist) {
@@ -547,7 +556,7 @@ const VillaController = {
 
       // Hapus ID foto dari array photos di dokumen villa
       villa.foto_villa = villa.foto_villa.filter(
-        (image) => image.toString() !== photoId,
+        (image) => image.toString() !== photoId
       );
       await villa.save();
 
@@ -575,7 +584,7 @@ const VillaController = {
       const updatedVilla = await Villa.findByIdAndUpdate(
         req.params.id,
         { status: req.body.status },
-        { new: true },
+        { new: true }
       );
 
       if (!updatedVilla) {
@@ -606,7 +615,7 @@ const VillaController = {
       // Cari semua pesanan yang terkait dengan villa tertentu
       const bookings = await Pesanan.find(
         { villa: villaId },
-        "tanggal_mulai tanggal_selesai",
+        "tanggal_mulai tanggal_selesai"
       );
 
       if (bookings.length === 0) {
