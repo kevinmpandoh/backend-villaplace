@@ -14,9 +14,7 @@ const {
 const { verifyUserLogin, verifyAdmin, verifyOwner } = require("../middleware/verifyToken");
 router.get("/", verifyAdmin, getAllUlasan);
 router.get("/owner/", verifyOwner, getAllUlasanByOwner);
-router.get("/:id", verifyAdmin, getUlasanById);
 router.delete("/:id", verifyAdmin, deleteUlasan);
-router.get("/:id", verifyOwner, getUlasanById);
 router.get("/user/", verifyUserLogin, getUlasanByIdUser);
 router.post("/", verifyUserLogin, createUlasan);
 router.put("/:id", verifyUserLogin, updateUlasanById);
