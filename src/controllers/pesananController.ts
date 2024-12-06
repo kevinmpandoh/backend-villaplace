@@ -6,7 +6,40 @@ import { Pembayaran } from "../models/pembayaranModel";
 const PesananController = {
   getAllPesanan: async (req: Request, res: Response): Promise<any> => {
     try {
-      const pesanan = await Pesanan.find()
+      const { searchQuery, page = 1, limit = 5 } = req.query;
+
+      // Konversi page dan limit menjadi angka
+      const pageNumber = Number(page);
+      const limitNumber = Number(limit);
+
+      const query: any = {};
+
+      // if (searchQuery) {
+      //   const sanitizedSearchQuery = searchQuery.toString().replace(/\./g, "");
+      //   query.$or = [
+      //     { jumlah_orang: { $regex: sanitizedSearchQuery, $options: "i" } }, // Pencarian pada jumlah_orang
+      //     { catatan: { $regex: sanitizedSearchQuery, $options: "i" } }, // Pencarian pada catatan
+      //     { status: { $regex: sanitizedSearchQuery, $options: "i" } }, // Pencarian pada status
+      //     { "user.nama": { $regex: sanitizedSearchQuery, $options: "i" } }, // Pencarian pada nama user (pastikan user memiliki field 'name')
+      //   ];
+      // }
+      if (searchQuery) {
+        const sanitizedSearchQuery = searchQuery.toString();
+        const isNumeric = !isNaN(Number(sanitizedSearchQuery));
+        if (isNumeric) {
+          query.jumlah_orang = Number(sanitizedSearchQuery);
+        } else {
+          query.$or = [
+            { catatan: { $regex: sanitizedSearchQuery, $options: "i" } },
+            { "villa.nama": { $regex: sanitizedSearchQuery, $options: "i" } },
+          ];
+        }
+      }
+
+      const pesanan = await Pesanan.find(query)
+        .sort({ createdAt: -1 })
+        .skip((pageNumber - 1) * limitNumber)
+        .limit(limitNumber)
         .populate({
           path: "villa",
           populate: [
@@ -21,9 +54,17 @@ const PesananController = {
           ],
         })
         .populate("user");
+      const totalBookings = await Pembayaran.countDocuments(query);
+      const totalPages = Math.ceil(totalBookings / limitNumber);
       return res.status(200).json({
         status: "success",
         message: "Success get all pesanan",
+        pagination: {
+          totalItems: totalBookings,
+          totalPages,
+          currentPage: pageNumber,
+          limit: limitNumber,
+        },
         data: pesanan,
       });
     } catch (error) {
