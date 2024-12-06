@@ -10,21 +10,6 @@ export const getAllUsers = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { searchQuery } = req.query; // Get the search query from request
-  
-      let query = {}; // Default query to return all admins
-  
-      if (searchQuery) {
-        // If searchQuery exists, filter the admins based on the search term
-        query = {
-          $or: [
-            { username: { $regex: searchQuery, $options: "i" } }, // Case-insensitive search for username
-            { email: { $regex: searchQuery, $options: "i" } },
-            { no_telepon: {$regex: searchQuery, $options: "i"}}, // Case-insensitive search for email
-          ],
-        };
-      }
-  
     const users = await User.find({}, "-password"); // Exclude password field
     res.json({
       status: "Success",

@@ -1,11 +1,15 @@
 import { Request, Response } from "express";
 import { Ulasan } from "../models/Ulasan";
 import { Villa } from "../models/villaModel";
+import mongoose from "mongoose";
 
 const UlasanController = {
   getAllUlasan: async (req: Request, res: Response) => {
     try {
-      const ulasanList = await Ulasan.find();
+      const ulasanList = await Ulasan.find()
+      .populate("user") // Fetch all user fields
+      .populate("villa"); // Fetch all villa fields
+;
       return res.status(200).json({
         status: "success",
         message: "Success get all ulasan",
@@ -15,6 +19,57 @@ const UlasanController = {
       return res.status(500).json({
         status: "error",
         message: error.message,
+      });
+    }
+  },
+
+  getAllUlasanByOwner: async (req: Request, res: Response) => {
+    try {
+      // Assuming the ownerId is passed in the request body
+      const ownerId = req.body.owner.ownerId;
+      
+      if (!ownerId) {
+        return res.status(400).json({
+          status: "error",
+          message: "Owner ID is required",
+        });
+      }
+  
+      // Find all villas owned by the specified ownerId based on pemilik_villa
+      const villas = await Villa.find({ pemilik_villa: ownerId }).select("_id");
+  
+      if (!villas.length) {
+        return res.status(404).json({
+          status: "error",
+          message: "No villas found for this owner",
+        });
+      }
+  
+      // Extract villa IDs
+      const villaIds = villas.map((villa) => villa._id);
+  
+      // Find all ulasan (reviews) related to the found villas
+      const ulasanList = await Ulasan.find({ villa: { $in: villaIds } })
+        .populate("user") // Fetch all user fields
+        .populate("villa"); // Fetch all villa fields
+  
+      if (ulasanList.length === 0) {
+        return res.status(404).json({
+          status: "error",
+          message: "No ulasan found for this owner's villas",
+        });
+      }
+  
+      return res.status(200).json({
+        status: "success",
+        message: "Successfully retrieved ulasan by owner",
+        data: ulasanList,
+      });
+    } catch (error: any) {
+      return res.status(500).json({
+        status: "error",
+        message: "An error occurred while retrieving ulasan",
+        error: error.message,
       });
     }
   },
@@ -44,51 +99,66 @@ const UlasanController = {
     }
   },
 
-  createUlasan: async (req: Request, res: Response) => {
-    try {
-      const userId = req.body.userLogin.userId;
-      const { komentar, rating, villa } = req.body;
-      if (!villa) {
-        return res.status(400).json({
-          status: "error",
-          message: "Villa ID is required.",
-        });
-      }
+ createUlasan: async (req: Request, res: Response) => {
+  try {
+    const userId = req.body.userLogin.userId;
+    const { komentar, rating, villa } = req.body;
 
-      if (!userId) {
-        return res.status(400).json({
-          status: "error",
-          message: "User ID is required.",
-        });
-      }
-
-      const newUlasan = new Ulasan({
-        komentar,
-        rating,
-        user: userId,
-        villa: villa,
-      });
-
-      await Villa.findByIdAndUpdate(
-        villa,
-        { $push: { ulasan: newUlasan._id } },
-        { new: true }
-      );
-
-      await newUlasan.save();
-      return res.status(201).json({
-        status: "success",
-        message: "Successfully added new ulasan",
-        data: newUlasan,
-      });
-    } catch (error: any) {
-      return res.status(500).json({
+    // Check if villa ID is provided
+    if (!villa) {
+      return res.status(400).json({
         status: "error",
-        message: error.message,
+        message: "Villa ID is required.",
       });
     }
-  },
 
+    // Check if user ID is provided
+    if (!userId) {
+      return res.status(400).json({
+        status: "error",
+        message: "User ID is required.",
+      });
+    }
+
+    // Check if the villa exists in the database
+    const existingVilla = await Villa.findById(villa);
+    if (!existingVilla) {
+      return res.status(404).json({
+        status: "error",
+        message: "Villa not found.",
+      });
+    }
+
+    // Create a new ulasan (review)
+    const newUlasan = new Ulasan({
+      komentar,
+      rating,
+      user: userId,
+      villa: villa,
+    });
+
+    // Update the villa with the new ulasan
+    await Villa.findByIdAndUpdate(
+      villa,
+      { $push: { ulasan: newUlasan._id } },
+      { new: true }
+    );
+
+    // Save the new ulasan
+    await newUlasan.save();
+
+    return res.status(201).json({
+      status: "success",
+      message: "Successfully added new ulasan",
+      data: newUlasan,
+    });
+  } catch (error: any) {
+    return res.status(500).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+},
   getUlasanById: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
