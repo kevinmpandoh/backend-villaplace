@@ -312,12 +312,14 @@ const PembayaranController = {
   
       res.status(200).json({
         status: "success",
-        data: pembayaranData,
+        data: {
+          pembayaranData,
         totalKeseluruhan,
         villaCount,
         pesananCount,
         ulasanCount,
-        avgRating, // Include average rating
+        avgRating,
+        } // Include average rating
       });
     } catch (error) {
       console.error(error);
