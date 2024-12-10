@@ -9,8 +9,9 @@ import { Pembayaran } from "../models/pembayaranModel";
 import bcrypt from "bcrypt";
 
 const adminController = {
-  dashboardAdmin: async (req: Request, res: Response): Promise<void> => {
+  dashboardAdmin: async (req: Request, res: Response) => {
     try {
+
       // Get counts of owners, users, orders, and villas
       const ownerCount = await Owner.countDocuments();
       const userCount = await User.countDocuments();
@@ -19,6 +20,14 @@ const adminController = {
   
       // Get range query from request
       const { range } = req.query; // Filter bulan (1-6 atau 7-12)
+  
+      if (!range || (range !== "1-6" && range !== "7-12")) {
+        return res
+          .status(400)
+          .json({ message: "Invalid range. Use '1-6' or '7-12'." });
+      }
+  
+      // Determine start and end months based on range
       const [startMonth, endMonth] = range === "1-6" ? [1, 6] : [7, 12];
   
       // Aggregation for pembayaran data by month
@@ -107,8 +116,6 @@ const adminController = {
       });
     }
   },
-  
-  
 
   getAllAdmins: async (req: Request, res: Response): Promise<void> => {
     try {

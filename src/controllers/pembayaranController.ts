@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { Pembayaran } from "../models/pembayaranModel";
 import { Pesanan } from "../models/pesananModel";
+import { Villa } from "../models/villaModel";
+import { Ulasan } from "../models/Ulasan";
 const midtransClient = require("midtrans-client");
 const mongoose = require("mongoose");
 
@@ -195,17 +197,17 @@ const PembayaranController = {
     try {
       const ownerId = req.body.owner.ownerId;
       const { range } = req.query; // Filter bulan (1-6 atau 7-12)
-
+  
       if (!range || (range !== "1-6" && range !== "7-12")) {
         return res
           .status(400)
           .json({ message: "Invalid range. Use '1-6' or '7-12'." });
       }
-
-      // Tentukan range bulan
+  
+      // Determine the range of months
       const [startMonth, endMonth] = range === "1-6" ? [1, 6] : [7, 12];
-
-      // Aggregation untuk menghitung jumlah pembayaran per bulan
+  
+      // Aggregation to compute monthly payments for a specific owner
       const pembayaranData = await Pembayaran.aggregate([
         {
           $lookup: {
@@ -227,51 +229,37 @@ const PembayaranController = {
         { $unwind: "$pesanan.villa" },
         {
           $match: {
-            "pesanan.villa.pemilik_villa": new mongoose.Types.ObjectId(ownerId), // Filter berdasarkan pemilik villa
+            "pesanan.villa.pemilik_villa": new mongoose.Types.ObjectId(ownerId), // Filter by villa owner
           },
         },
         {
           $addFields: {
-            bulanPembayaran: { $month: "$tanggal_pembayaran" }, // Tambahkan bulan pembayaran
+            bulanPembayaran: { $month: "$tanggal_pembayaran" }, // Add month field
           },
         },
         {
           $match: {
-            bulanPembayaran: { $gte: startMonth, $lte: endMonth }, // Filter berdasarkan bulan
+            bulanPembayaran: { $gte: startMonth, $lte: endMonth }, // Filter by month
           },
         },
         {
           $group: {
-            _id: "$bulanPembayaran", // Kelompokkan berdasarkan bulan pembayaran
-            totalPembayaran: { $sum: "$jumlah_pembayaran" }, // Jumlahkan pembayaran
-            count: { $sum: 1 }, // Hitung jumlah transaksi
+            _id: "$bulanPembayaran", // Group by month
+            totalPembayaran: { $sum: "$jumlah_pembayaran" }, // Sum payments
+            count: { $sum: 1 }, // Count transactions
           },
         },
         {
-          $sort: { _id: 1 }, // Urutkan berdasarkan bulan
+          $sort: { _id: 1 }, // Sort by month
         },
         {
           $addFields: {
             bulan: {
               $arrayElemAt: [
-                [
-                  "",
-                  "January",
-                  "February",
-                  "March",
-                  "April",
-                  "May",
-                  "June",
-                  "July",
-                  "August",
-                  "September",
-                  "October",
-                  "November",
-                  "December",
-                ],
+                ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
                 "$_id",
               ],
-            }, // Konversi angka bulan ke nama bulan
+            }, // Convert month number to name
           },
         },
         {
@@ -283,26 +271,63 @@ const PembayaranController = {
           },
         },
       ]);
-
-      // Hitung total keseluruhan pembayaran
+  
+      // Count the total number of villas and orders for the owner
+      const villaCount = await Villa.countDocuments({
+        pemilik_villa: new mongoose.Types.ObjectId(ownerId),
+      });
+  
+      const villaDocuments = await Villa.find({ pemilik_villa: new mongoose.Types.ObjectId(ownerId) });
+      const villaIds = villaDocuments.map(villa => villa._id);
+  
+      const pesananCount = await Pesanan.countDocuments({
+        villa: { $in: villaIds },
+      });
+  
+      // Count the total number of reviews for the owner's villas
+      const ulasanData = await Ulasan.aggregate([
+        {
+          $match: {
+            villa: { $in: villaIds },
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            ulasanCount: { $sum: 1 }, // Count reviews
+            avgRating: { $avg: "$rating" }, // Average rating
+          },
+        },
+      ]);
+  
+  
+      const ulasanCount = ulasanData.length > 0 ? ulasanData[0].ulasanCount : 0;
+      const avgRating = ulasanData.length > 0 ? ulasanData[0].avgRating.toFixed(1) : 0;
+  
+      // Calculate the total payment amount across all months
       const totalKeseluruhan = pembayaranData.reduce(
         (acc, curr) => acc + curr.totalPembayaran,
         0
       );
-
+  
       res.status(200).json({
         status: "success",
         data: pembayaranData,
         totalKeseluruhan,
+        villaCount,
+        pesananCount,
+        ulasanCount,
+        avgRating, // Include average rating
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return res.status(500).json({
         status: "error",
         message: "Internal Server Error",
       });
     }
   },
+  
 
   getPembayaranByIdUser: async (req: Request, res: Response) => {
     try {
