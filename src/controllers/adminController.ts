@@ -4,24 +4,90 @@ import User from "../models/userModel";
 import Owner from "../models/ownerModel";
 import {Pesanan} from "../models/pesananModel";
 import { Villa } from "../models/villaModel";
+import { Pembayaran } from "../models/pembayaranModel";
 
 import bcrypt from "bcrypt";
 
 const adminController = {
   dashboardAdmin: async (req: Request, res: Response): Promise<void> => {
     try {
+      // Get counts of owners, users, orders, and villas
       const ownerCount = await Owner.countDocuments();
-
-      // Count the number of users
       const userCount = await User.countDocuments();
-  
-      // Count the number of orders (pesanan)
       const pesananCount = await Pesanan.countDocuments();
-  
-      // Count the number of posts (postingan)
       const villaCount = await Villa.countDocuments();
   
-      // Send the counts in the response
+      // Get range query from request
+      const { range } = req.query; // Filter bulan (1-6 atau 7-12)
+      const [startMonth, endMonth] = range === "1-6" ? [1, 6] : [7, 12];
+  
+      // Aggregation for pembayaran data by month
+      const pembayaranData = await Pembayaran.aggregate([
+        {
+          $lookup: {
+            from: "pesanans",
+            localField: "pesanan",
+            foreignField: "_id",
+            as: "pesanan",
+          },
+        },
+        { $unwind: "$pesanan" },
+        {
+          $lookup: {
+            from: "villas",
+            localField: "pesanan.villa",
+            foreignField: "_id",
+            as: "pesanan.villa",
+          },
+        },
+        { $unwind: "$pesanan.villa" },
+        {
+          $addFields: {
+            bulanPembayaran: { $month: "$tanggal_pembayaran" }, // Add month field
+          },
+        },
+        {
+          $match: {
+            bulanPembayaran: { $gte: startMonth, $lte: endMonth }, // Filter by month
+          },
+        },
+        {
+          $group: {
+            _id: "$bulanPembayaran", // Group by month
+            totalPembayaran: { $sum: "$jumlah_pembayaran" }, // Sum payments
+            count: { $sum: 1 }, // Count transactions
+          },
+        },
+        {
+          $sort: { _id: 1 }, // Sort by month
+        },
+        {
+          $addFields: {
+            bulan: {
+              $arrayElemAt: [
+                ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+                "$_id",
+              ],
+            }, // Convert month number to month name
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            bulan: 1,
+            totalPembayaran: 1,
+            count: 1,
+          },
+        },
+      ]);
+  
+      // Calculate total payments across all months
+      const totalKeseluruhan = pembayaranData.reduce(
+        (acc, curr) => acc + curr.totalPembayaran,
+        0
+      );
+  
+      // Return combined data for dashboard
       res.status(200).json({
         success: true,
         data: {
@@ -29,10 +95,11 @@ const adminController = {
           userCount,
           pesananCount,
           villaCount,
+          pembayaranData,
+          totalKeseluruhan,
         },
       });
     } catch (error: any) {
-      // Handle any errors
       console.error(error);
       res.status(500).json({
         success: false,
@@ -40,7 +107,10 @@ const adminController = {
       });
     }
   },
-    getAllAdmins: async (req: Request, res: Response): Promise<void> => {
+  
+  
+
+  getAllAdmins: async (req: Request, res: Response): Promise<void> => {
     try {
       
       const admins = await Admin.find({},"-password"); // Exclude password field
