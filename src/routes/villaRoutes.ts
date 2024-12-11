@@ -18,7 +18,14 @@ const {
   deleteVillaImage,
   updateVillaStatus,
   getBookedDatesByVillaId,
+  editVillaImages,
 } = require("../controllers/villaController");
+
+router.put(
+  "/:villaId/edit-villa-images/:photoId",
+  upload.array("foto_villa"),
+  editVillaImages
+);
 
 router.get("/", getAllVillas);
 router.get("/owner/", verifyOwner, getAllVillasOwner);
@@ -33,6 +40,7 @@ router.post(
   upload.array("foto_villa", 10),
   uploadVillaImages
 );
+
 router.get("/:id/photos", getVillaImages);
 router.delete("/:id/photos/:photoId", deleteVillaImage);
 router.patch("/:id/change-status", verifyAdmin, updateVillaStatus);

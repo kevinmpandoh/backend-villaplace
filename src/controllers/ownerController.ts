@@ -197,28 +197,9 @@ export const changePasswordOwner = async (
       errors.newPassword = "Password baru harus diisi";
     }
 
-    // Jika ada error, kirimkan semua error dalam satu response
-    if (Object.keys(errors).length > 0) {
-      res.status(400).json({
-        status: "Failed",
-        message: "Validasi gagal",
-        errors, // Mengirim semua error yang ditemukan dalam objek
-      });
-      return;
-    }
-
     // Validasi panjang password baru
     if (newPassword.length < 8) {
       errors.newPassword = "Password baru harus memiliki minimal 8 karakter";
-    }
-
-    if (Object.keys(errors).length > 0) {
-      res.status(400).json({
-        status: "Failed",
-        message: "Validasi gagal",
-        errors, // Mengirim semua error yang ditemukan dalam objek
-      });
-      return;
     }
 
     const ownerId = req.body.owner.ownerId; // Ambil ownerId dari body request
@@ -234,17 +215,18 @@ export const changePasswordOwner = async (
       });
       return;
     }
-
-    // Bandingkan password lama
+    // Compare the current password
     const isMatch = await bcrypt.compare(currentPassword, owner.password);
 
     if (!isMatch) {
+      errors.currentPassword = "Password lama tidak sesuai!";
+    }
+
+    if (Object.keys(errors).length > 0) {
       res.status(400).json({
         status: "Failed",
-        error: {
-          message: "Password yang anda masukkan salah",
-          field: "currentPassword",
-        },
+        message: "Validasi gagal",
+        errors, // Mengirim semua error yang ditemukan dalam objek
       });
       return;
     }

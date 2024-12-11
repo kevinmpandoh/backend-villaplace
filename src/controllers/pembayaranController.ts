@@ -120,72 +120,112 @@ const PembayaranController = {
 
   getPembayaranByIdOwner: async (req: Request, res: Response) => {
     try {
-      const ownerId = req.body.owner.ownerId;
-
+      const ownerId = new mongoose.Types.ObjectId(req.body.owner.ownerId); // Konversi ownerId ke ObjectId
       const { searchQuery, page = 1, limit = 5 } = req.query;
 
       // Konversi page dan limit menjadi angka
       const pageNumber = Number(page);
       const limitNumber = Number(limit);
 
-      const query: any = {};
+      // Agregasi MongoDB
+      const pipeline: any[] = [
+        {
+          $lookup: {
+            from: "pesanans",
+            localField: "pesanan",
+            foreignField: "_id",
+            as: "pesanan",
+          },
+        },
+        { $unwind: "$pesanan" }, // Pastikan `pesanan` tidak berbentuk array
+        {
+          $lookup: {
+            from: "villas",
+            localField: "pesanan.villa",
+            foreignField: "_id",
+            as: "pesanan.villa",
+          },
+        },
+        { $unwind: "$pesanan.villa" }, // Pastikan `villa` tidak berbentuk array
+        {
+          $lookup: {
+            from: "villaphotos",
+            localField: "pesanan.villa._id",
+            foreignField: "villa",
+            as: "pesanan.villa.foto_villa",
+          },
+        },
+        {
+          $match: {
+            "pesanan.villa.pemilik_villa": ownerId,
+          },
+        },
+      ];
 
+      // Filter jika ada `searchQuery`
       if (searchQuery) {
         const sanitizedSearchQuery = searchQuery.toString().replace(/\./g, "");
-
-        query.$or = [
-          { email_pembayar: { $regex: searchQuery, $options: "i" } },
-          { nama_pembayar: { $regex: searchQuery, $options: "i" } },
-          { kode_pembayaran: { $regex: searchQuery, $options: "i" } },
-          { metode_pembayaran: { $regex: searchQuery, $options: "i" } },
-          { bank: { $regex: searchQuery, $options: "i" } },
-          { nomor_va: { $regex: searchQuery, $options: "i" } },
-          { "pesanan.villa.nama": { $regex: searchQuery, $options: "i" } },
-        ];
+        pipeline.push({
+          $match: {
+            $or: [
+              {
+                email_pembayar: { $regex: sanitizedSearchQuery, $options: "i" },
+              },
+              {
+                nama_pembayar: { $regex: sanitizedSearchQuery, $options: "i" },
+              },
+              {
+                kode_pembayaran: {
+                  $regex: sanitizedSearchQuery,
+                  $options: "i",
+                },
+              },
+              {
+                metode_pembayaran: {
+                  $regex: sanitizedSearchQuery,
+                  $options: "i",
+                },
+              },
+              { bank: { $regex: sanitizedSearchQuery, $options: "i" } },
+              { nomor_va: { $regex: sanitizedSearchQuery, $options: "i" } },
+              {
+                "pesanan.villa.nama": {
+                  $regex: sanitizedSearchQuery,
+                  $options: "i",
+                },
+              },
+            ],
+          },
+        });
       }
 
-      const pembayaran = await Pembayaran.find(query)
-        .sort({ createdAt: -1 })
-        .skip((pageNumber - 1) * limitNumber)
-        .limit(limitNumber)
-        .populate({
-          path: "pesanan",
-          populate: [
-            {
-              path: "villa",
-              match: { pemilik_villa: ownerId },
-              populate: [
-                {
-                  path: "foto_villa",
-                  model: "VillaPhoto",
-                },
-              ],
-            },
-          ],
-        })
-        .exec();
+      // Pagination dan Sorting
+      const countPipeline = [...pipeline, { $count: "totalItems" }];
+      const [countResult] = await Pembayaran.aggregate(countPipeline);
+      const totalItems = countResult ? countResult.totalItems : 0;
+      const totalPages = Math.ceil(totalItems / limitNumber);
 
-      // Hapus pembayaran yang tidak memiliki pesanan sesuai user
-      const filteredPembayaran = pembayaran.filter(
-        (item) => item.pesanan !== null
+      pipeline.push(
+        { $sort: { createdAt: -1 } },
+        { $skip: (pageNumber - 1) * limitNumber },
+        { $limit: limitNumber }
       );
 
-      const totalPayments = await Pembayaran.countDocuments(query);
-      const totalPages = Math.ceil(totalPayments / limitNumber);
+      const pembayaran = await Pembayaran.aggregate(pipeline);
 
       return res.status(200).json({
         status: "success",
-        message: "Success get pembayaran by id user",
+        message: "Success get pembayaran by id owner",
         pagination: {
-          totalItems: totalPayments,
+          totalItems,
           totalPages,
           currentPage: pageNumber,
           limit: limitNumber,
         },
-        data: filteredPembayaran,
+        data: pembayaran,
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return res.status(500).json({
         status: "error",
         message: "Internal Server Error",
@@ -197,16 +237,16 @@ const PembayaranController = {
     try {
       const ownerId = req.body.owner.ownerId;
       const { range } = req.query; // Filter bulan (1-6 atau 7-12)
-  
+
       if (!range || (range !== "1-6" && range !== "7-12")) {
         return res
           .status(400)
           .json({ message: "Invalid range. Use '1-6' or '7-12'." });
       }
-  
+
       // Determine the range of months
       const [startMonth, endMonth] = range === "1-6" ? [1, 6] : [7, 12];
-  
+
       // Aggregation to compute monthly payments for a specific owner
       const pembayaranData = await Pembayaran.aggregate([
         {
@@ -256,7 +296,21 @@ const PembayaranController = {
           $addFields: {
             bulan: {
               $arrayElemAt: [
-                ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+                [
+                  "",
+                  "January",
+                  "February",
+                  "March",
+                  "April",
+                  "May",
+                  "June",
+                  "July",
+                  "August",
+                  "September",
+                  "October",
+                  "November",
+                  "December",
+                ],
                 "$_id",
               ],
             }, // Convert month number to name
@@ -271,19 +325,21 @@ const PembayaranController = {
           },
         },
       ]);
-  
+
       // Count the total number of villas and orders for the owner
       const villaCount = await Villa.countDocuments({
         pemilik_villa: new mongoose.Types.ObjectId(ownerId),
       });
-  
-      const villaDocuments = await Villa.find({ pemilik_villa: new mongoose.Types.ObjectId(ownerId) });
-      const villaIds = villaDocuments.map(villa => villa._id);
-  
+
+      const villaDocuments = await Villa.find({
+        pemilik_villa: new mongoose.Types.ObjectId(ownerId),
+      });
+      const villaIds = villaDocuments.map((villa) => villa._id);
+
       const pesananCount = await Pesanan.countDocuments({
         villa: { $in: villaIds },
       });
-  
+
       // Count the total number of reviews for the owner's villas
       const ulasanData = await Ulasan.aggregate([
         {
@@ -299,27 +355,27 @@ const PembayaranController = {
           },
         },
       ]);
-  
-  
+
       const ulasanCount = ulasanData.length > 0 ? ulasanData[0].ulasanCount : 0;
-      const avgRating = ulasanData.length > 0 ? ulasanData[0].avgRating.toFixed(1) : 0;
-  
+      const avgRating =
+        ulasanData.length > 0 ? ulasanData[0].avgRating.toFixed(1) : 0;
+
       // Calculate the total payment amount across all months
       const totalKeseluruhan = pembayaranData.reduce(
         (acc, curr) => acc + curr.totalPembayaran,
         0
       );
-  
+
       res.status(200).json({
         status: "success",
         data: {
           pembayaranData,
-        totalKeseluruhan,
-        villaCount,
-        pesananCount,
-        ulasanCount,
-        avgRating,
-        } // Include average rating
+          totalKeseluruhan,
+          villaCount,
+          pesananCount,
+          ulasanCount,
+          avgRating,
+        }, // Include average rating
       });
     } catch (error) {
       console.error(error);
@@ -329,7 +385,6 @@ const PembayaranController = {
       });
     }
   },
-  
 
   getPembayaranByIdUser: async (req: Request, res: Response) => {
     try {
