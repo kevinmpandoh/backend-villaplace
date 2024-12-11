@@ -11,6 +11,10 @@ cron.schedule("* * * * *", async () => {
       status: "success", // Hanya pesanan yang sudah dibayar
     });
 
+    if (!pesananToUpdate.length) {
+      return;
+    }
+
     for (const pesanan of pesananToUpdate) {
       try {
         // Periksa apakah status pembayaran terkait adalah success

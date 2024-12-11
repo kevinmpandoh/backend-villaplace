@@ -15,10 +15,15 @@ const ulasanSchema: Schema = new Schema(
       ref: "Villa",
       required: true,
     },
+    pesanan: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Pesanan",
+      required: true,
+    },
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 export const Ulasan = mongoose.model<IUlasan>("Ulasan", ulasanSchema);

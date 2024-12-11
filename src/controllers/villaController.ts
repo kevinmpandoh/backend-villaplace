@@ -346,6 +346,7 @@ const VillaController = {
             rating: ulasan.rating,
             user: ulasan.user,
             _id: ulasan._id,
+            createdAt: ulasan.createdAt,
           })),
           pesanans: pesanans,
           starPercentage: starPercentage, // Add the star rating percentage
@@ -385,9 +386,13 @@ const VillaController = {
     try {
       req.body.status = "pending";
 
+      const { nama, deskripsi, harga, fasilitas, kategori, lokasi, status } =
+        req.body;
+
       const updatedVilla = await Villa.findByIdAndUpdate(
         req.params.id,
-        req.body,
+        { nama, deskripsi, harga, fasilitas, kategori, lokasi, status },
+
         { new: true }
       );
       if (!updatedVilla) {
@@ -486,6 +491,143 @@ const VillaController = {
       res.status(500).json({
         status: "error",
         message: "Failed to upload villa images",
+      });
+    }
+  },
+
+  // editVillaImages: async (req: Request, res: Response) => {
+  //   const { villaId, photoId } = req.params;
+  //   const file = req.file as Express.Multer.File; // File yang diunggah
+
+  //   try {
+  //     // Validasi: Pastikan villa ada
+  //     const villa = await Villa.findById(villaId);
+  //     if (!villa) {
+  //       return res.status(404).json({
+  //         status: "fail",
+  //         message: "Villa not found",
+  //       });
+  //     }
+
+  //     // Validasi: Pastikan foto villa ada
+  //     const photo = await VillaPhoto.findByIdAndUpdate(
+  //       photoId,
+  //       {
+  //         name: file.filename,
+  //         filepath: file.path,
+  //         url: `${req.protocol}://${req.get("host")}/images/villa/${
+  //           file.filename
+  //         }`,
+  //       },
+  //       { new: true }
+  //     );
+
+  //     if (!photo) {
+  //       return res.status(404).json({
+  //         status: "fail",
+  //         message: "Photo not found",
+  //       });
+  //     }
+  //     res.status(200).json({
+  //       status: "success",
+  //       message: "Villa photo updated successfully",
+  //       data: photo,
+  //     });
+  //   } catch (error) {
+  //     console.error("Error updating villa photo:", error);
+  //     res.status(500).json({
+  //       status: "error",
+  //       message: "An error occurred while updating the villa photo",
+  //     });
+  //   }
+  // },
+  editVillaImages: async (req: Request, res: Response) => {
+    try {
+      const villaId = req.params.villaId;
+      const photoId = req.params.photoId;
+      const imageFiles = req.files as Express.Multer.File[];
+
+      if (!imageFiles || imageFiles.length === 0) {
+        return res.status(400).json({ message: "No files were uploaded." });
+      }
+
+      // Validasi: Pastikan foto villa ada
+
+      const oldPhotos = await VillaPhoto.findById(photoId);
+
+      if (!oldPhotos) {
+        return res.status(404).json({ message: "Photo not found" });
+      }
+
+      // Hapus file dari sistem file
+      const filePath = path.join(__dirname, "..", "..", oldPhotos.filepath);
+      fs.unlinkSync(filePath);
+
+      const photo = await VillaPhoto.findByIdAndUpdate(
+        photoId,
+        {
+          name: imageFiles[0].filename,
+          villa: villaId,
+          filepath: imageFiles[0].path,
+          url: `${req.protocol}://${req.get("host")}/images/villa/${
+            imageFiles[0].filename
+          }`,
+        },
+        { new: true }
+      );
+
+      if (!photo) {
+        return res.status(404).json({ message: "Photo not found" });
+      }
+
+      // Hapus foto lama
+
+      // await VillaPhoto.findByIdAndUpdate(
+      //   { villa: villaId },
+      //   { $unset: { villa: "" } },
+      //   { multi: true }
+      // );
+
+      // Validasi: Pastikan villa ada
+      // const villa = await Villa.findById(villaId);
+      // if (!villa) {
+      //   return res.status(404).json({
+      //     status: "fail",
+      //     message: "Villa not found",
+      //   });
+      // }
+
+      // // Hapus foto lama
+      // const oldPhotos = await VillaPhoto.find({ villa: villaId });
+      // oldPhotos.forEach((photo) => {
+      //   fs.unlinkSync(photo.filepath); // Hapus file lama
+      //   console.log(photo, "photo");
+      // });
+      // // await VillaPhoto.deleteMany({ villaId });
+
+      // // Simpan foto baru
+      // const photos = (req.files as Express.Multer.File[]).map((file) => ({
+      //   url: `${req.protocol}://${req.get("host")}/images/villa/${
+      //     file.filename
+      //   }`,
+      //   name: file.filename,
+      //   villa: villaId,
+      //   filepath: file.path,
+      // }));
+
+      // console.log(photos, "photos new");
+
+      // const updatedPhotos = await VillaPhoto.insertMany(photos);
+      res.status(200).json({
+        status: "success",
+        message: "Villa photo updated successfully",
+        data: photo,
+      });
+    } catch (error) {
+      console.error("Error updating villa photo:", error);
+      res.status(500).json({
+        status: "error",
+        message: "An error occurred while updating the villa photo",
       });
     }
   },
@@ -621,7 +763,7 @@ const VillaController = {
       if (bookings.length === 0) {
         return res
           .status(200)
-          .json({ message: "No bookings found for this villa", dates: [] });
+          .json({ message: "No bookings found for this villa", data: [] });
       }
 
       // Format hasil menjadi array tanggal mulai dan tanggal selesai

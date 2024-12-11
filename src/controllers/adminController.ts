@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { Admin } from "../models/adminModel";
 import User from "../models/userModel";
 import Owner from "../models/ownerModel";
-import {Pesanan} from "../models/pesananModel";
+import { Pesanan } from "../models/pesananModel";
 import { Villa } from "../models/villaModel";
 import { Pembayaran } from "../models/pembayaranModel";
 
@@ -11,25 +11,24 @@ import bcrypt from "bcrypt";
 const adminController = {
   dashboardAdmin: async (req: Request, res: Response) => {
     try {
-
       // Get counts of owners, users, orders, and villas
       const ownerCount = await Owner.countDocuments();
       const userCount = await User.countDocuments();
       const pesananCount = await Pesanan.countDocuments();
       const villaCount = await Villa.countDocuments();
-  
+
       // Get range query from request
       const { range } = req.query; // Filter bulan (1-6 atau 7-12)
-  
+
       if (!range || (range !== "1-6" && range !== "7-12")) {
         return res
           .status(400)
           .json({ message: "Invalid range. Use '1-6' or '7-12'." });
       }
-  
+
       // Determine start and end months based on range
       const [startMonth, endMonth] = range === "1-6" ? [1, 6] : [7, 12];
-  
+
       // Aggregation for pembayaran data by month
       const pembayaranData = await Pembayaran.aggregate([
         {
@@ -74,7 +73,21 @@ const adminController = {
           $addFields: {
             bulan: {
               $arrayElemAt: [
-                ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+                [
+                  "",
+                  "January",
+                  "February",
+                  "March",
+                  "April",
+                  "May",
+                  "June",
+                  "July",
+                  "August",
+                  "September",
+                  "October",
+                  "November",
+                  "December",
+                ],
                 "$_id",
               ],
             }, // Convert month number to month name
@@ -89,13 +102,13 @@ const adminController = {
           },
         },
       ]);
-  
+
       // Calculate total payments across all months
       const totalKeseluruhan = pembayaranData.reduce(
         (acc, curr) => acc + curr.totalPembayaran,
         0
       );
-  
+
       // Return combined data for dashboard
       res.status(200).json({
         success: true,
@@ -119,9 +132,8 @@ const adminController = {
 
   getAllAdmins: async (req: Request, res: Response): Promise<void> => {
     try {
-      
-      const admins = await Admin.find({},"-password"); // Exclude password field
-  
+      const admins = await Admin.find({}, "-password"); // Exclude password field
+
       res.json({
         status: "Success",
         message: "Successfully retrieved admins",
@@ -199,7 +211,7 @@ const adminController = {
       const { id } = req.params;
       const { nama, email } = req.body;
       const updateData: any = { nama, email };
-  
+
       const emailExists = await Admin.findOne({ email, _id: { $ne: id } });
       if (emailExists) {
         res.status(400).json({
@@ -208,11 +220,11 @@ const adminController = {
         });
         return;
       }
-  
+
       const updatedAdmin = await Admin.findByIdAndUpdate(id, updateData, {
         new: true,
       });
-  
+
       if (!updatedAdmin) {
         res.status(404).json({
           status: "error",
@@ -220,7 +232,7 @@ const adminController = {
         });
         return;
       }
-  
+
       res.status(200).json({
         status: "success",
         message: "Success update admin by id",
@@ -233,7 +245,6 @@ const adminController = {
       });
     }
   },
-  
 
   deleteAdminById: async (req: Request, res: Response): Promise<void> => {
     try {
@@ -277,6 +288,17 @@ const adminController = {
   changePasswordAdmin: async (req: Request, res: Response): Promise<void> => {
     try {
       const { currentPassword, newPassword } = req.body;
+      // Objek untuk menyimpan error
+      const errors: { [key: string]: string } = {};
+
+      // Validasi untuk password lama dan password baru
+      if (!currentPassword) {
+        errors.currentPassword = "Password lama harus diisi";
+      }
+      if (!newPassword) {
+        errors.newPassword = "Password baru harus diisi";
+      }
+
       if (newPassword.length < 8) {
         res.status(400).json({
           status: "Failed",
@@ -295,9 +317,15 @@ const adminController = {
       const isMatch = await bcrypt.compare(currentPassword, admin.password);
 
       if (!isMatch) {
-        res
-          .status(400)
-          .json({ status: "Failed", message: "Incorrect current password" });
+        errors.currentPassword = "Password lama tidak sesuai!";
+      }
+
+      if (Object.keys(errors).length > 0) {
+        res.status(400).json({
+          status: "Failed",
+          message: "Validasi gagal",
+          errors, // Mengirim semua error yang ditemukan dalam objek
+        });
         return;
       }
 

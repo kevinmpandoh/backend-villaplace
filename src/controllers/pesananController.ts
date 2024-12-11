@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { Pesanan } from "../models/pesananModel";
 import { Villa } from "../models/villaModel";
 import { Pembayaran } from "../models/pembayaranModel";
+import mongoose from "mongoose";
 
 const PesananController = {
   getAllPesanan: async (req: Request, res: Response): Promise<any> => {
@@ -45,7 +46,7 @@ const PesananController = {
           populate: [
             {
               path: "pemilik_villa",
-              model: "User",
+              model: "Owner",
             },
             {
               path: "foto_villa",
@@ -76,6 +77,120 @@ const PesananController = {
     }
   },
 
+  getPesananByIdOwner: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const ownerId = new mongoose.Types.ObjectId(req.body.owner?.ownerId); // Konversi ownerId ke ObjectId
+      const { searchQuery, page = 1, limit = 5 } = req.query;
+
+      // Konversi page dan limit menjadi angka
+      const pageNumber = Number(page);
+      const limitNumber = Number(limit);
+
+      const query: any = {};
+
+      if (searchQuery) {
+        const sanitizedSearchQuery = searchQuery.toString();
+        const isNumeric = !isNaN(Number(sanitizedSearchQuery));
+        if (isNumeric) {
+          query.jumlah_orang = Number(sanitizedSearchQuery);
+        } else {
+          query.$or = [
+            { catatan: { $regex: sanitizedSearchQuery, $options: "i" } },
+            { "villa.nama": { $regex: sanitizedSearchQuery, $options: "i" } },
+          ];
+        }
+      }
+
+      // Gunakan agregasi untuk filter dan paginasi
+      const pipeline: any[] = [
+        // Filter pesanan
+        { $match: query },
+        // Lookup untuk villa dan pemilik_villa
+        {
+          $lookup: {
+            from: "villas", // Nama koleksi villa
+            localField: "villa",
+            foreignField: "_id",
+            as: "villa",
+          },
+        },
+        { $unwind: "$villa" }, // Unwind villa untuk mengakses properti di dalamnya
+        // Filter berdasarkan ownerId
+        {
+          $match: {
+            "villa.pemilik_villa": ownerId,
+          },
+        },
+        // Pagination
+        { $skip: (pageNumber - 1) * limitNumber },
+        { $limit: limitNumber },
+        { $sort: { createdAt: -1 } },
+        // Populate tambahan untuk user dan foto_villa
+        {
+          $lookup: {
+            from: "users",
+            localField: "user",
+            foreignField: "_id",
+            as: "user",
+          },
+        },
+        {
+          $lookup: {
+            from: "villaphotos",
+            localField: "villa.foto_villa",
+            foreignField: "_id",
+            as: "villa.foto_villa",
+          },
+        },
+      ];
+
+      // Jalankan agregasi
+      const pesanan = await Pesanan.aggregate(pipeline);
+
+      // Hitung total data tanpa paginasi
+      const totalBookings = await Pesanan.aggregate([
+        { $match: query },
+        {
+          $lookup: {
+            from: "villas",
+            localField: "villa",
+            foreignField: "_id",
+            as: "villa",
+          },
+        },
+        { $unwind: "$villa" },
+        { $match: { "villa.pemilik_villa": ownerId } },
+        { $count: "total" },
+      ]);
+
+      const totalItems = totalBookings.length > 0 ? totalBookings[0].total : 0;
+      const totalPages = Math.ceil(totalItems / limitNumber);
+
+      // const responseData = pesanan.map((item) => ({
+      //   ...item.toObject(),
+      //   user: item.user[0], // Ambil elemen pertama array user
+      // }));
+
+      return res.status(200).json({
+        status: "success",
+        message: "Success get all pesanan by owner",
+        pagination: {
+          totalItems,
+          totalPages,
+          currentPage: pageNumber,
+          limit: limitNumber,
+        },
+        data: pesanan,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        status: "error",
+        message: "Internal Server Error",
+      });
+    }
+  },
+
   getPesananById: async (req: Request, res: Response): Promise<any> => {
     try {
       const pesanan = await Pesanan.findById(req.params.id).populate([
@@ -84,7 +199,7 @@ const PesananController = {
           populate: [
             {
               path: "pemilik_villa",
-              model: "User",
+              model: "Owner",
             },
             {
               path: "foto_villa",
@@ -124,7 +239,7 @@ const PesananController = {
         {
           path: "villa",
           populate: [
-            { path: "pemilik_villa", model: "User" },
+            { path: "pemilik_villa", model: "Owner" },
             { path: "foto_villa", model: "VillaPhoto" },
             { path: "ulasan", model: "Ulasan", match: { user: user } },
           ],
@@ -226,6 +341,103 @@ const PesananController = {
         jumlah_orang,
         catatan,
         user: userId,
+        status,
+      });
+      const savedPesanan = await newPesanan.save();
+
+      return res.status(201).json({
+        status: "success",
+        message: "Pesanan created successfully",
+        data: savedPesanan,
+      });
+    } catch (error) {
+      console.log(error);
+      return res.status(500).json({
+        status: "error",
+        message: "Internal Server Error",
+      });
+    }
+  },
+  createPesananOwner: async (req: Request, res: Response): Promise<any> => {
+    try {
+      const errors: Record<string, string> = {};
+      const {
+        villa,
+        tanggal_mulai,
+        tanggal_selesai,
+        harga,
+        jumlah_orang,
+        catatan,
+        status,
+      } = req.body;
+
+      const ownerId = req.body.owner?.ownerId;
+
+      if (!ownerId) {
+        errors.user = "Owner is required";
+      }
+
+      if (!villa) {
+        errors.villa = "Villa is required";
+      } else {
+        const villaData = await Villa.findById(villa);
+        if (!villaData) {
+          errors.villa = "Villa not found";
+        }
+      }
+
+      if (!tanggal_mulai) {
+        errors.tanggal_mulai = "Tanggal mulai is required";
+      }
+
+      if (!tanggal_selesai) {
+        errors.tanggal_selesai = "Tanggal selesai is required";
+      }
+
+      if (!harga) {
+        errors.harga = "Harga is required";
+      }
+
+      if (!jumlah_orang) {
+        errors.jumlah_orang = "Jumlah orang is required";
+      }
+
+      const startDate = new Date(tanggal_mulai);
+      const endDate = new Date(tanggal_selesai);
+
+      const existingBookings = await Pesanan.find({
+        villa,
+        status: { $ne: "completed" },
+        $or: [
+          {
+            tanggal_mulai: { $lt: endDate },
+            tanggal_selesai: { $gt: startDate },
+          },
+          { tanggal_mulai: { $gte: startDate, $lte: endDate } },
+          { tanggal_selesai: { $gte: startDate, $lte: endDate } },
+        ],
+      });
+
+      if (existingBookings.length > 0) {
+        errors.villa = "Villa is already booked for the selected dates";
+      }
+
+      if (Object.keys(errors).length > 0) {
+        return res.status(400).json({
+          status: "error",
+          message: "Bad request",
+          errors,
+        });
+      }
+
+      const newPesanan = new Pesanan({
+        villa,
+        tanggal_mulai,
+        tanggal_selesai,
+        harga,
+        jumlah_orang,
+        catatan,
+        user: ownerId,
         status,
       });
       const savedPesanan = await newPesanan.save();

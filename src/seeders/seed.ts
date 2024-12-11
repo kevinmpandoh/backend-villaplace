@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import userSeeder from "./userSeeder";
 import ownerSeeder from "./ownerSeeder";
 import adminSeeder from "./adminSeeder";
+import villaSeeder from "./villaSeeder";
+import villaPhotoSeeder from "./villaPhotoSeeder";
 
 const main = async () => {
   try {
@@ -16,6 +18,10 @@ const main = async () => {
     await userSeeder();
     await ownerSeeder();
     await adminSeeder();
+    await villaSeeder();
+
+    // Jalankan seeder foto villa
+    // await villaPhotoSeeder();
   } catch (error) {
     console.error("Error connecting to MongoDB:", error);
   } finally {

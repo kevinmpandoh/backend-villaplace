@@ -5,4 +5,6 @@ export interface IUlasan extends Document {
   rating: number;
   user: Schema.Types.ObjectId;
   villa: Schema.Types.ObjectId;
+  pesanan: Schema.Types.ObjectId;
+  createdAt: Date;
 }
