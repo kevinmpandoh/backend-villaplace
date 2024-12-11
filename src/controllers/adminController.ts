@@ -17,8 +17,7 @@ const adminController = {
       const pesananCount = await Pesanan.countDocuments();
       const villaCount = await Villa.countDocuments();
 
-      // Get range query from request
-      const { range } = req.query; // Filter bulan (1-6 atau 7-12)
+      const { range } = req.query;
 
       if (!range || (range !== "1-6" && range !== "7-12")) {
         return res
@@ -26,10 +25,8 @@ const adminController = {
           .json({ message: "Invalid range. Use '1-6' or '7-12'." });
       }
 
-      // Determine start and end months based on range
       const [startMonth, endMonth] = range === "1-6" ? [1, 6] : [7, 12];
 
-      // Aggregation for pembayaran data by month
       const pembayaranData = await Pembayaran.aggregate([
         {
           $lookup: {
@@ -50,24 +47,29 @@ const adminController = {
         },
         { $unwind: "$pesanan.villa" },
         {
+          $match: {
+            status_pembayaran: "success",
+          },
+        },
+        {
           $addFields: {
-            bulanPembayaran: { $month: "$tanggal_pembayaran" }, // Add month field
+            bulanPembayaran: { $month: "$tanggal_pembayaran" },
           },
         },
         {
           $match: {
-            bulanPembayaran: { $gte: startMonth, $lte: endMonth }, // Filter by month
+            bulanPembayaran: { $gte: startMonth, $lte: endMonth },
           },
         },
         {
           $group: {
-            _id: "$bulanPembayaran", // Group by month
+            _id: "$bulanPembayaran",
             totalPembayaran: { $sum: "$jumlah_pembayaran" }, // Sum payments
-            count: { $sum: 1 }, // Count transactions
+            count: { $sum: 1 },
           },
         },
         {
-          $sort: { _id: 1 }, // Sort by month
+          $sort: { _id: 1 },
         },
         {
           $addFields: {
@@ -90,7 +92,7 @@ const adminController = {
                 ],
                 "$_id",
               ],
-            }, // Convert month number to month name
+            },
           },
         },
         {

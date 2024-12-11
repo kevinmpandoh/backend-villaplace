@@ -244,10 +244,8 @@ const PembayaranController = {
           .json({ message: "Invalid range. Use '1-6' or '7-12'." });
       }
 
-      // Determine the range of months
       const [startMonth, endMonth] = range === "1-6" ? [1, 6] : [7, 12];
 
-      // Aggregation to compute monthly payments for a specific owner
       const pembayaranData = await Pembayaran.aggregate([
         {
           $lookup: {
@@ -273,24 +271,29 @@ const PembayaranController = {
           },
         },
         {
+          $match: {
+            status_pembayaran: "success",
+          },
+        },
+        {
           $addFields: {
-            bulanPembayaran: { $month: "$tanggal_pembayaran" }, // Add month field
+            bulanPembayaran: { $month: "$tanggal_pembayaran" },
           },
         },
         {
           $match: {
-            bulanPembayaran: { $gte: startMonth, $lte: endMonth }, // Filter by month
+            bulanPembayaran: { $gte: startMonth, $lte: endMonth },
           },
         },
         {
           $group: {
-            _id: "$bulanPembayaran", // Group by month
-            totalPembayaran: { $sum: "$jumlah_pembayaran" }, // Sum payments
-            count: { $sum: 1 }, // Count transactions
+            _id: "$bulanPembayaran", 
+            totalPembayaran: { $sum: "$jumlah_pembayaran" },
+            count: { $sum: 1 },
           },
         },
         {
-          $sort: { _id: 1 }, // Sort by month
+          $sort: { _id: 1 },
         },
         {
           $addFields: {
@@ -313,7 +316,7 @@ const PembayaranController = {
                 ],
                 "$_id",
               ],
-            }, // Convert month number to name
+            },
           },
         },
         {
