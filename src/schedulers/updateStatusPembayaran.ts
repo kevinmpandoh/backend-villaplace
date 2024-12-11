@@ -10,6 +10,10 @@ cron.schedule("* * * * *", async () => {
       status_pembayaran: { $in: ["pending", "in-progress"] },
     });
 
+    if (!pendingPayments.length) {
+      return;
+    }
+
     const midtransClientConfig = new midtransClient.Snap({
       isProduction: false,
       serverKey: process.env.MIDTRANS_SERVER_KEY,

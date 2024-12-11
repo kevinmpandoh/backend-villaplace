@@ -4,9 +4,7 @@ import { VillaPhoto } from "../models/villaPhotoModel";
 import { Ulasan } from "../models/Ulasan";
 import { Favorite } from "../models/Favorite";
 import { Pesanan } from "../models/pesananModel";
-import { ObjectId } from "mongoose";
 
-import mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
 
