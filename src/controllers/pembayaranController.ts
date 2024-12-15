@@ -9,67 +9,126 @@ const mongoose = require("mongoose");
 const PembayaranController = {
   getAllPembayaran: async (req: Request, res: Response) => {
     try {
-      const { searchQuery, page = 1, limit = 5 } = req.query;
+      const { searchQuery, status } = req.query;
 
       // Konversi page dan limit menjadi angka
-      const pageNumber = Number(page);
-      const limitNumber = Number(limit);
+      // const pageNumber = Number(page);
+      // const limitNumber = Number(limit);
 
-      const query: any = {};
+      // Sanitasi query pencarian
+      const sanitizedSearchQuery = searchQuery?.toString().replace(/\./g, "");
 
-      if (searchQuery) {
-        const sanitizedSearchQuery = searchQuery.toString().replace(/\./g, "");
+      // Buat pipeline untuk aggregate
+      const pipeline: any[] = [];
 
-        query.$or = [
-          { email_pembayar: { $regex: searchQuery, $options: "i" } },
-          { nama_pembayar: { $regex: searchQuery, $options: "i" } },
-          { kode_pembayaran: { $regex: searchQuery, $options: "i" } },
-          { metode_pembayaran: { $regex: searchQuery, $options: "i" } },
-          { bank: { $regex: searchQuery, $options: "i" } },
-          { nomor_va: { $regex: searchQuery, $options: "i" } },
-          { "pesanan.villa.nama": { $regex: searchQuery, $options: "i" } },
-        ];
+      // Filter status pembayaran jika ada
+      if (status && status !== "All") {
+        pipeline.push({
+          $match: { status_pembayaran: status },
+        });
       }
 
-      const pembayaran = await Pembayaran.find(query)
-        .sort({ createdAt: -1 })
-        .skip((pageNumber - 1) * limitNumber)
-        .limit(limitNumber)
-        .populate([
-          {
-            path: "pesanan",
-            populate: [
+      // Tambahkan pencarian berdasarkan query
+      if (sanitizedSearchQuery) {
+        pipeline.push({
+          $match: {
+            $or: [
               {
-                path: "villa",
-                populate: [
-                  {
-                    path: "foto_villa",
-                    model: "VillaPhoto",
-                  },
-                ],
+                email_pembayar: { $regex: sanitizedSearchQuery, $options: "i" },
+              },
+              {
+                nama_pembayar: { $regex: sanitizedSearchQuery, $options: "i" },
+              },
+              {
+                kode_pembayaran: {
+                  $regex: sanitizedSearchQuery,
+                  $options: "i",
+                },
+              },
+              {
+                metode_pembayaran: {
+                  $regex: sanitizedSearchQuery,
+                  $options: "i",
+                },
+              },
+              { bank: { $regex: sanitizedSearchQuery, $options: "i" } },
+              { nomor_va: { $regex: sanitizedSearchQuery, $options: "i" } },
+              {
+                "pesanan.villa.nama": {
+                  $regex: sanitizedSearchQuery,
+                  $options: "i",
+                },
               },
             ],
           },
-        ]);
+        });
+      }
 
-      // Hapus pembayaran yang tidak memiliki pesanan sesuai user
-      const filteredPembayaran = pembayaran.filter(
-        (item) => item.pesanan !== null
+      // Lookup pesanan dan villa
+      pipeline.push(
+        {
+          $lookup: {
+            from: "pesanans",
+            localField: "pesanan",
+            foreignField: "_id",
+            as: "pesanan",
+          },
+        },
+        {
+          $unwind: "$pesanan", // Memecah array pesanan menjadi objek
+        },
+        {
+          $lookup: {
+            from: "villas",
+            localField: "pesanan.villa",
+            foreignField: "_id",
+            as: "pesanan.villa",
+          },
+        },
+        {
+          $unwind: "$pesanan.villa", // Memecah array villa menjadi objek
+        },
+        {
+          $lookup: {
+            from: "villaphotos",
+            localField: "pesanan.villa.foto_villa",
+            foreignField: "_id",
+            as: "pesanan.villa.foto_villa",
+          },
+        }
       );
 
-      const totalPayments = await Pembayaran.countDocuments(query);
-      const totalPages = Math.ceil(totalPayments / limitNumber);
+      // Urutkan berdasarkan waktu pembuatan
+      pipeline.push({
+        $sort: { createdAt: -1 },
+      });
 
+      // Pagination
+      // pipeline.push(
+      //   { $skip: (pageNumber - 1) * limitNumber },
+      //   { $limit: limitNumber }
+      // );
+
+      // Eksekusi pipeline
+      const pembayaran = await Pembayaran.aggregate(pipeline);
+
+      // Hitung total dokumen
+      const countPipeline = [...pipeline];
+      countPipeline.splice(countPipeline.length - 2, 2); // Hapus pagination untuk menghitung total
+      const totalPayments = (await Pembayaran.aggregate(countPipeline)).length;
+      // const totalPages = Math.ceil(totalPayments / limitNumber);
+
+      // Respon data
       return res.status(200).json({
         status: "success",
         message: "Success get all pembayaran",
-        pagination: {
-          totalItems: totalPayments,
-          totalPages,
-          currentPage: pageNumber,
-          limit: limitNumber,
-        },
-        data: filteredPembayaran,
+        // pagination: {
+        //   totalItems: totalPayments,
+        //   totalPages,
+        //   currentPage: pageNumber,
+        //   limit: limitNumber,
+        // },
+        data: pembayaran,
       });
     } catch (error) {
       console.log(error);
@@ -121,11 +180,7 @@ const PembayaranController = {
   getPembayaranByIdOwner: async (req: Request, res: Response) => {
     try {
       const ownerId = new mongoose.Types.ObjectId(req.body.owner.ownerId); // Konversi ownerId ke ObjectId
-      const { searchQuery, page = 1, limit = 5 } = req.query;
-
-      // Konversi page dan limit menjadi angka
-      const pageNumber = Number(page);
-      const limitNumber = Number(limit);
+      const { status } = req.query;
 
       // Agregasi MongoDB
       const pipeline: any[] = [
@@ -162,66 +217,20 @@ const PembayaranController = {
         },
       ];
 
-      // Filter jika ada `searchQuery`
-      if (searchQuery) {
-        const sanitizedSearchQuery = searchQuery.toString().replace(/\./g, "");
+      // Filter status pembayaran jika ada
+      if (status && status !== "All") {
         pipeline.push({
-          $match: {
-            $or: [
-              {
-                email_pembayar: { $regex: sanitizedSearchQuery, $options: "i" },
-              },
-              {
-                nama_pembayar: { $regex: sanitizedSearchQuery, $options: "i" },
-              },
-              {
-                kode_pembayaran: {
-                  $regex: sanitizedSearchQuery,
-                  $options: "i",
-                },
-              },
-              {
-                metode_pembayaran: {
-                  $regex: sanitizedSearchQuery,
-                  $options: "i",
-                },
-              },
-              { bank: { $regex: sanitizedSearchQuery, $options: "i" } },
-              { nomor_va: { $regex: sanitizedSearchQuery, $options: "i" } },
-              {
-                "pesanan.villa.nama": {
-                  $regex: sanitizedSearchQuery,
-                  $options: "i",
-                },
-              },
-            ],
-          },
+          $match: { status_pembayaran: status },
         });
       }
 
-      // Pagination dan Sorting
-      const countPipeline = [...pipeline, { $count: "totalItems" }];
-      const [countResult] = await Pembayaran.aggregate(countPipeline);
-      const totalItems = countResult ? countResult.totalItems : 0;
-      const totalPages = Math.ceil(totalItems / limitNumber);
-
-      pipeline.push(
-        { $sort: { createdAt: -1 } },
-        { $skip: (pageNumber - 1) * limitNumber },
-        { $limit: limitNumber }
-      );
+      pipeline.push({ $sort: { createdAt: -1 } });
 
       const pembayaran = await Pembayaran.aggregate(pipeline);
 
       return res.status(200).json({
         status: "success",
         message: "Success get pembayaran by id owner",
-        pagination: {
-          totalItems,
-          totalPages,
-          currentPage: pageNumber,
-          limit: limitNumber,
-        },
         data: pembayaran,
       });
     } catch (error) {
@@ -287,7 +296,7 @@ const PembayaranController = {
         },
         {
           $group: {
-            _id: "$bulanPembayaran", 
+            _id: "$bulanPembayaran",
             totalPembayaran: { $sum: "$jumlah_pembayaran" },
             count: { $sum: 1 },
           },
@@ -395,6 +404,7 @@ const PembayaranController = {
 
       // Cari pembayaran berdasarkan pesanan yang dimiliki user tersebut
       const pembayaran = await Pembayaran.find()
+        .sort({ createdAt: -1 })
         .populate({
           path: "pesanan",
           match: { user: userId }, // Filter pesanan berdasarkan user
