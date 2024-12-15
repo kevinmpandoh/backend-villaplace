@@ -24,6 +24,16 @@ const adminSeeder = async () => {
         email: "denti@gmail.com",
         password: await bcrypt.hash("password", 10),
       },
+      {
+        nama: "Azkal Admin",
+        email: "azkal@gmail.com",
+        password: await bcrypt.hash("password", 10),
+      },
+      {
+        nama: "Maria Admin",
+        email: "maria@gmail.com",
+        password: await bcrypt.hash("password", 10),
+      },
     ];
 
     // Menambahkan data user baru ke database

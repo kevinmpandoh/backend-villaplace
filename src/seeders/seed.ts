@@ -5,8 +5,12 @@ import ownerSeeder from "./ownerSeeder";
 import adminSeeder from "./adminSeeder";
 import villaSeeder from "./villaSeeder";
 import villaPhotoSeeder from "./villaPhotoSeeder";
+import pesananSeeder from "./pesananSeeder";
+import pembayaranSeeder from "./pembayaranSeeder";
+import ulasanSeeder from "./ulasanSeeder";
+import favoriteSeeder from "./favoriteSeeder";
 
-const main = async () => {
+export const main = async () => {
   try {
     // Koneksi ke database
     await mongoose.connect(
@@ -19,6 +23,11 @@ const main = async () => {
     await ownerSeeder();
     await adminSeeder();
     await villaSeeder();
+    await villaPhotoSeeder();
+    await pesananSeeder();
+    await pembayaranSeeder();
+    await ulasanSeeder();
+    await favoriteSeeder();
 
     // Jalankan seeder foto villa
     // await villaPhotoSeeder();
