@@ -6,7 +6,9 @@ import bcrypt from "bcrypt";
 
 let testAdmin: any;
 
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/mydb";
+const MONGO_URI =
+  process.env.MONGO_URI ||
+  "mongodb+srv://feryyuliarahman11:villaPlace@cluster0.jjoun.mongodb.net/test";
 
 beforeAll(async () => {
   // Koneksi ke database

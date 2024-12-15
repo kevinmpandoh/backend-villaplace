@@ -3,7 +3,9 @@ import app from "../../../app"; // Pastikan Anda mengarah ke file utama Express 
 import Owner from "../../../models/ownerModel";
 import mongoose from "mongoose";
 
-const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/mydb";
+const MONGO_URI =
+  process.env.MONGO_URI ||
+  "mongodb+srv://feryyuliarahman11:villaPlace@cluster0.jjoun.mongodb.net/test";
 
 describe("Owner Authentication", () => {
   beforeAll(async () => {
