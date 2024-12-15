@@ -6,9 +6,13 @@ import bcrypt from "bcrypt";
 
 let testAdmin: any;
 
+const MONGO_URI =
+  process.env.MONGO_URI ||
+  "mongodb+srv://feryyuliarahman11:villaPlace@cluster0.jjoun.mongodb.net/test";
+
 beforeAll(async () => {
   // Koneksi ke database
-  await mongoose.connect("mongodb://localhost:27017/testdb");
+  await mongoose.connect(`${MONGO_URI}`);
 
   // Buat admin dengan password yang di-hash
   const hashedPassword = await bcrypt.hash("password123", 10);

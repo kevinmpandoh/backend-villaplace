@@ -3,10 +3,14 @@ import mongoose from "mongoose";
 import app from "../../../app"; // Path ke file Express utama Anda
 import User from "../../../models/userModel"; // Path ke model User Anda
 
+const MONGO_URI =
+  process.env.MONGO_URI ||
+  "mongodb+srv://feryyuliarahman11:villaPlace@cluster0.jjoun.mongodb.net/test";
+
 describe("Authentication - Register Endpoint", () => {
   // Jalankan koneksi database
   beforeAll(async () => {
-    await mongoose.connect("mongodb://localhost:27017/testdb");
+    await mongoose.connect(`${MONGO_URI}`);
   });
 
   // Tutup koneksi database setelah test selesai

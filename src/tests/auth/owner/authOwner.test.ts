@@ -1,13 +1,15 @@
 import request from "supertest";
 import app from "../../../app"; // Pastikan Anda mengarah ke file utama Express Anda
 import Owner from "../../../models/ownerModel";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
+
+const MONGO_URI =
+  process.env.MONGO_URI ||
+  "mongodb+srv://feryyuliarahman11:villaPlace@cluster0.jjoun.mongodb.net/test";
 
 describe("Owner Authentication", () => {
   beforeAll(async () => {
-    await mongoose.connect("mongodb://localhost:27017/testdb");
+    await mongoose.connect(`${MONGO_URI}`);
     await Owner.deleteMany({});
   });
 
