@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken"; // Mock ini
 jest.mock("../../../models/userModel");
 jest.mock("bcrypt");
 jest.mock("jsonwebtoken");
+const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/mydb";
 
 describe("Login User Controller", () => {
   const mockUser = {
