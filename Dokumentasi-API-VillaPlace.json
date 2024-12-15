@@ -12,7 +12,7 @@
     }
   ],
   "paths": {
-    "/user/register": {
+    "/api/user/register": {
       "post": {
         "tags": [
           "Authentication"
@@ -179,7 +179,7 @@
         }
       }
     },
-    "/user/login": {
+    "/api/user/login": {
       "post": {
         "tags": [
           "Authentication"
@@ -323,7 +323,7 @@
         }
       }
     },
-    "/user/logout": {
+    "/api/user/logout": {
       "post": {
         "tags": [
           "Authentication"
@@ -392,7 +392,7 @@
         }
       }
     },
-    "/owner/register": {
+    "/api/owner/register": {
       "post": {
         "tags": [
           "Authentication"
@@ -558,7 +558,7 @@
         }
       }
     },
-    "/owner/login": {
+    "/api/owner/login": {
       "post": {
         "tags": [
           "Authentication"
@@ -702,7 +702,7 @@
         }
       }
     },
-    "/owner/logout": {
+    "/api/owner/logout": {
       "post": {
         "tags": [
           "Authentication"
@@ -771,7 +771,7 @@
         }
       }
     },
-    "/admin/login": {
+    "/api/admin/login": {
       "post": {
         "tags": [
           "Authentication"
@@ -915,7 +915,7 @@
         }
       }
     },
-    "/admin/logout": {
+    "/api/admin/logout": {
       "post": {
         "tags": [
           "Authentication"
@@ -984,7 +984,7 @@
         }
       }
     },
-    "/user": {
+    "/api/user": {
       "get": {
         "tags": [
           "User"
@@ -1041,7 +1041,7 @@
         }
       }
     },
-    "/user/{id}": {
+    "/api/user/{id}": {
       "get": {
         "tags": [
           "User"
@@ -1313,7 +1313,7 @@
         }
       }
     },
-    "/user/{id}/change-password": {
+    "/api/user/change-password": {
       "put": {
         "tags": [
           "User"
@@ -1442,7 +1442,7 @@
         }
       }
     },
-    "/user/{id}/upload-photo": {
+    "/api/user/{id}/upload": {
       "put": {
         "tags": [
           "User"
@@ -1565,7 +1565,7 @@
         }
       }
     },
-    "/owner": {
+    "/api/owner": {
       "get": {
         "tags": [
           "Owner"
@@ -1621,7 +1621,7 @@
         }
       }
     },
-    "/owner/{id}": {
+    "/api/owner/{id}": {
       "get": {
         "tags": [
           "Owner"
@@ -1893,7 +1893,7 @@
         }
       }
     },
-    "/owner/{id}/change-password": {
+    "/api/owner/change-password": {
       "put": {
         "tags": [
           "Owner"
@@ -2022,7 +2022,7 @@
         }
       }
     },
-    "/owner/{id}/upload-photo": {
+    "/api/owner/{id}/upload": {
       "put": {
         "tags": [
           "Owner"
@@ -2145,7 +2145,7 @@
         }
       }
     },
-    "/admin": {
+    "/api/admin": {
       "get": {
         "tags": [
           "Admin"
@@ -2279,9 +2279,27 @@
             }
           }
         }
+      },
+      "post": {
+        "tags": [
+          "Admin"
+        ],
+        "description": "Create Admin",
+        "security": [
+          {
+            "VillaPlaceAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok"
+          }
+
+        }
       }
+
     },
-    "/admin/{id}": {
+    "/api/admin/{id}": {
       "get": {
         "tags": [
           "Admin"
@@ -2547,7 +2565,7 @@
         }
       }
     },
-    "/villa": {
+    "/api/villa": {
       "get": {
         "tags": [
           "Villa"
@@ -3104,7 +3122,7 @@
         }
       }
     },
-    "/villa/:id": {
+    "/api/villa/:id": {
       "get": {
         "tags": [
           "Villa"
@@ -3485,7 +3503,7 @@
         }
       }
     },
-    "/villa/{id}/photos": {
+    "/api/villa/{id}/uplaod-villa": {
       "post": {
         "tags": [
           "Villa"
@@ -3724,7 +3742,7 @@
         }
       }
     },
-    "/villa/{id}/photos/{photoId}": {
+    "/api/villa/{id}/photos/{photoId}": {
       "delete": {
         "tags": [
           "Villa"
@@ -3828,7 +3846,7 @@
         }
       }
     },
-    "/pesanan": {
+    "/api/pesanan": {
       "get": {
         "tags": [
           "Pesanan"
@@ -4225,7 +4243,7 @@
         }
       }
     },
-    "/pesanan/:id": {
+    "/api/pesanan/:id": {
       "get": {
         "tags": [
           "Pesanan"
@@ -4784,7 +4802,7 @@
         }
       }
     },
-    "/pembayaran": {
+    "/api/pembayaran": {
       "get": {
         "tags": [
           "Pembayaran"
@@ -5086,7 +5104,7 @@
         }
       }
     },
-    "/pembayaran/:id": {
+    "/api/pembayaran/:id": {
       "get": {
         "tags": [
           "Pembayaran"
@@ -5551,7 +5569,7 @@
         }
       }
     },
-    "/pembayaran/transaksi": {
+    "/api/pembayaran/transaksi": {
       "post": {
         "tags": [
           "Pembayaran"
@@ -5741,7 +5759,7 @@
         }
       }
     },
-    "/favorite": {
+    "/api/favorite": {
       "get": {
         "tags": [
           "Favorite"
@@ -6059,7 +6077,7 @@
         }
       }
     },
-    "/favorite/:id": {
+    "/api/favorite/:id": {
       "delete": {
         "tags": [
           "Favorite"
@@ -6187,7 +6205,7 @@
         }
       }
     },
-    "/ulasan": {
+    "/api/ulasan": {
       "get": {
         "tags": [
           "Ulasan"
@@ -6520,7 +6538,7 @@
         }
       }
     },
-    "/ulasan/:id": {
+    "/api/ulasan/:id": {
       "get": {
         "tags": [
           "Ulasan"
@@ -6971,6 +6989,365 @@
             }
           }
         }
+      }
+    },
+    "/api/admin/dashboard": {    
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "VillaPlaceAuth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/current-admin": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "VillaPlaceAuth": []
+          }
+        ]
+      }
+    },
+    "/api/admin/change-password": {
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "VillaPlaceAuth": []
+          }
+        ]
+      }
+    },
+     "/api/owner/current-owner": {
+      "get": {
+        "tags": [
+          "Owner"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+
+        "security": [
+          {
+            "VillaPlaceAuth": []
+          }
+        ]
+      }
+    },
+    "/api/pembayaran/user": {
+      "get": {
+        "tags": [
+          "Pembayaran"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "VillaPlaceAuth": []
+          }
+        ]
+      }
+    },
+    "/api/pembayaran/owner": {
+      "get": {
+        "tags": [
+          "Owner"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "VillaPlaceAuth": []
+          }
+        ]
+      }
+    },
+    "/api/pembayaran/chart": {
+      "get": {
+        "tags": [
+          "Pembayaran"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "VillaPlaceAuth": []
+          }
+        ]
+      }
+    },
+    "/api/pesanan/createPesananOwner": {
+      
+      "post": {
+        "tags": [
+          "Pesanan"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "VillaPlaceAuth": []
+          }
+        ]
+      }
+    },
+    "/api/pesanan/owner": {
+      
+      "get": {
+        "tags": [
+          "Pesanan"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "VillaPlaceAuth": []
+          }
+        ]
+      }
+    },
+    "/api/pesanan/user": {
+      "get": {
+        "tags": [
+          "Pesanan"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "VillaPlaceAuth": []
+          }
+        ]
+      }
+    },
+    "/api/ulasan/owner": {
+      "get": {
+        "tags": [
+          "Ulasan"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "VillaPlaceAuth": []
+          }
+        ]
+      }
+    },
+    "/api/ulasan/user": {
+      "get": {
+        "tags": [
+          "Ulasan"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "VillaPlaceAuth": []
+          }
+        ]
+      }
+    },
+    "/api/user/current-user": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "VillaPlaceAuth": []
+          }
+        ]
+      }
+    },
+    "/api/villa/owner": {
+      "get": {
+        "tags": [
+          "Villa"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "VillaPlaceAuth": []
+          }
+        ]
+      }
+    },
+    "/api/villa/admin": {
+      "get": {
+        "tags": [
+          "Villa"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "VillaPlaceAuth": []
+          }
+        ]
+      }
+    },
+    "/api/villa/{id}/change-status": {
+      "patch": {
+        "tags": [
+          "Villa"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "VillaPlaceAuth": []
+          }
+        ]
+      }
+    },
+    "/api/villa/{id}/booked-dates": {
+      "get": {
+        "tags": [
+          "Villa"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "VillaPlaceAuth": []
+          }
+        ]
+      }
+    },
+    "/api/villa/{id}/photos": {
+      "get": {
+        "tags": [
+          "Villa"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/villa/{villaId}/edit-villa-iamges/{:photoId}": {
+      "get": {
+        "tags": [
+          "Villa"
+        ],
+        "description": "",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "security": [
+          {
+            "VillaPlaceAuth": []
+          }
+        ]
       }
     }
   },
