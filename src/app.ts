@@ -9,6 +9,10 @@ import "./schedulers/updateStatusPesanan";
 import "./schedulers/updateStatusPembayaran";
 
 const router = require("./routes");
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://your-production-domain.com",
+];
 
 // Load environment variables
 dotenv.config();
@@ -21,7 +25,13 @@ app.use(cookieParser());
 // Middleware
 app.use(
   cors({
-    origin: "*",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true); // Izinkan akses
+      } else {
+        callback(new Error("Not allowed by CORS")); // Tolak akses
+      }
+    },
     credentials: true,
   })
 );
