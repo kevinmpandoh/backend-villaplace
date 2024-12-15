@@ -12,7 +12,7 @@ const MONGO_URI =
 
 beforeAll(async () => {
   // Koneksi ke database
-  await mongoose.connect(`${MONGO_URI}/test`);
+  await mongoose.connect(`${MONGO_URI}`);
 
   // Buat admin dengan password yang di-hash
   const hashedPassword = await bcrypt.hash("password123", 10);

@@ -9,7 +9,7 @@ const MONGO_URI =
 
 describe("Owner Authentication", () => {
   beforeAll(async () => {
-    await mongoose.connect(`${MONGO_URI}/test`);
+    await mongoose.connect(`${MONGO_URI}`);
     await Owner.deleteMany({});
   });
 

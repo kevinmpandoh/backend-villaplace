@@ -10,7 +10,7 @@ const MONGO_URI =
 describe("Authentication - Register Endpoint", () => {
   // Jalankan koneksi database
   beforeAll(async () => {
-    await mongoose.connect(`${MONGO_URI}/test`);
+    await mongoose.connect(`${MONGO_URI}`);
   });
 
   // Tutup koneksi database setelah test selesai
