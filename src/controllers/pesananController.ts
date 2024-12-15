@@ -3,17 +3,18 @@ import { Pesanan } from "../models/pesananModel";
 import { Villa } from "../models/villaModel";
 import { Pembayaran } from "../models/pembayaranModel";
 import mongoose from "mongoose";
+import { addHours } from "date-fns";
 
 const PesananController = {
   getAllPesanan: async (req: Request, res: Response): Promise<any> => {
     try {
-      const { searchQuery, page = 1, limit = 5 } = req.query;
-
-      // Konversi page dan limit menjadi angka
-      const pageNumber = Number(page);
-      const limitNumber = Number(limit);
+      const { status } = req.query;
 
       const query: any = {};
+
+      if (status && status !== "All") {
+        query.status = status;
+      }
 
       // if (searchQuery) {
       //   const sanitizedSearchQuery = searchQuery.toString().replace(/\./g, "");
@@ -24,23 +25,9 @@ const PesananController = {
       //     { "user.nama": { $regex: sanitizedSearchQuery, $options: "i" } }, // Pencarian pada nama user (pastikan user memiliki field 'name')
       //   ];
       // }
-      if (searchQuery) {
-        const sanitizedSearchQuery = searchQuery.toString();
-        const isNumeric = !isNaN(Number(sanitizedSearchQuery));
-        if (isNumeric) {
-          query.jumlah_orang = Number(sanitizedSearchQuery);
-        } else {
-          query.$or = [
-            { catatan: { $regex: sanitizedSearchQuery, $options: "i" } },
-            { "villa.nama": { $regex: sanitizedSearchQuery, $options: "i" } },
-          ];
-        }
-      }
 
       const pesanan = await Pesanan.find(query)
         .sort({ createdAt: -1 })
-        .skip((pageNumber - 1) * limitNumber)
-        .limit(limitNumber)
         .populate({
           path: "villa",
           populate: [
@@ -55,17 +42,10 @@ const PesananController = {
           ],
         })
         .populate("user");
-      const totalBookings = await Pembayaran.countDocuments(query);
-      const totalPages = Math.ceil(totalBookings / limitNumber);
+
       return res.status(200).json({
         status: "success",
         message: "Success get all pesanan",
-        pagination: {
-          totalItems: totalBookings,
-          totalPages,
-          currentPage: pageNumber,
-          limit: limitNumber,
-        },
         data: pesanan,
       });
     } catch (error) {
@@ -79,26 +59,13 @@ const PesananController = {
 
   getPesananByIdOwner: async (req: Request, res: Response): Promise<any> => {
     try {
-      const ownerId = new mongoose.Types.ObjectId(req.body.owner?.ownerId); // Konversi ownerId ke ObjectId
-      const { searchQuery, page = 1, limit = 5 } = req.query;
-
-      // Konversi page dan limit menjadi angka
-      const pageNumber = Number(page);
-      const limitNumber = Number(limit);
+      const ownerId = new mongoose.Types.ObjectId(req.body.owner.ownerId);
+      const { status } = req.query;
 
       const query: any = {};
 
-      if (searchQuery) {
-        const sanitizedSearchQuery = searchQuery.toString();
-        const isNumeric = !isNaN(Number(sanitizedSearchQuery));
-        if (isNumeric) {
-          query.jumlah_orang = Number(sanitizedSearchQuery);
-        } else {
-          query.$or = [
-            { catatan: { $regex: sanitizedSearchQuery, $options: "i" } },
-            { "villa.nama": { $regex: sanitizedSearchQuery, $options: "i" } },
-          ];
-        }
+      if (status && status !== "All") {
+        query.status = status;
       }
 
       // Gunakan agregasi untuk filter dan paginasi
@@ -121,9 +88,6 @@ const PesananController = {
             "villa.pemilik_villa": ownerId,
           },
         },
-        // Pagination
-        { $skip: (pageNumber - 1) * limitNumber },
-        { $limit: limitNumber },
         { $sort: { createdAt: -1 } },
         // Populate tambahan untuk user dan foto_villa
         {
@@ -132,6 +96,12 @@ const PesananController = {
             localField: "user",
             foreignField: "_id",
             as: "user",
+          },
+        },
+        {
+          $unwind: {
+            path: "$user",
+            preserveNullAndEmptyArrays: true, // Tetap tampilkan meskipun user tidak ada
           },
         },
         {
@@ -163,23 +133,9 @@ const PesananController = {
         { $count: "total" },
       ]);
 
-      const totalItems = totalBookings.length > 0 ? totalBookings[0].total : 0;
-      const totalPages = Math.ceil(totalItems / limitNumber);
-
-      // const responseData = pesanan.map((item) => ({
-      //   ...item.toObject(),
-      //   user: item.user[0], // Ambil elemen pertama array user
-      // }));
-
       return res.status(200).json({
         status: "success",
         message: "Success get all pesanan by owner",
-        pagination: {
-          totalItems,
-          totalPages,
-          currentPage: pageNumber,
-          limit: limitNumber,
-        },
         data: pesanan,
       });
     } catch (error) {
@@ -193,22 +149,24 @@ const PesananController = {
 
   getPesananById: async (req: Request, res: Response): Promise<any> => {
     try {
-      const pesanan = await Pesanan.findById(req.params.id).populate([
-        {
-          path: "villa",
-          populate: [
-            {
-              path: "pemilik_villa",
-              model: "Owner",
-            },
-            {
-              path: "foto_villa",
-              model: "VillaPhoto",
-            },
-          ],
-        },
-        "user",
-      ]);
+      const pesanan = await Pesanan.findById(req.params.id)
+        .sort({ createdAt: -1 })
+        .populate([
+          {
+            path: "villa",
+            populate: [
+              {
+                path: "pemilik_villa",
+                model: "Owner",
+              },
+              {
+                path: "foto_villa",
+                model: "VillaPhoto",
+              },
+            ],
+          },
+          "user",
+        ]);
 
       if (!pesanan) {
         return res.status(404).json({
@@ -235,17 +193,19 @@ const PesananController = {
       const user = req.body.userLogin?.userId;
       const pesanan = await Pesanan.find({
         user: req.body.userLogin?.userId,
-      }).populate([
-        {
-          path: "villa",
-          populate: [
-            { path: "pemilik_villa", model: "Owner" },
-            { path: "foto_villa", model: "VillaPhoto" },
-            { path: "ulasan", model: "Ulasan", match: { user: user } },
-          ],
-        },
-        "user",
-      ]);
+      })
+        .sort({ createdAt: -1 })
+        .populate([
+          {
+            path: "villa",
+            populate: [
+              { path: "pemilik_villa", model: "Owner" },
+              { path: "foto_villa", model: "VillaPhoto" },
+              { path: "ulasan", model: "Ulasan", match: { user: user } },
+            ],
+          },
+          "user",
+        ]);
 
       return res.status(200).json({
         status: "success",
@@ -335,8 +295,8 @@ const PesananController = {
 
       const newPesanan = new Pesanan({
         villa,
-        tanggal_mulai,
-        tanggal_selesai,
+        tanggal_mulai: addHours(new Date(tanggal_mulai), 8),
+        tanggal_selesai: addHours(new Date(tanggal_selesai), 8),
         harga,
         jumlah_orang,
         catatan,
@@ -432,12 +392,12 @@ const PesananController = {
 
       const newPesanan = new Pesanan({
         villa,
-        tanggal_mulai,
-        tanggal_selesai,
+        tanggal_mulai: addHours(new Date(tanggal_mulai), 8),
+        tanggal_selesai: addHours(new Date(tanggal_selesai), 8),
         harga,
         jumlah_orang,
         catatan,
-        user: ownerId,
+        user: ownerId, // ID dari User atau Owner
         status,
       });
       const savedPesanan = await newPesanan.save();

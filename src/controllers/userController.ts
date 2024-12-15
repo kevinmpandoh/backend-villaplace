@@ -3,6 +3,8 @@ import User from "../models/userModel";
 import bcrypt from "bcrypt";
 import { Ulasan } from "../models/Ulasan";
 import { Pesanan } from "../models/pesananModel";
+import fs from "fs";
+import path from "path";
 
 //! Get all users
 export const getAllUsers = async (
@@ -270,6 +272,30 @@ export const uploadProfileImagesUser = async (req: Request, res: Response) => {
         },
       });
       return;
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      res.status(404).json({
+        status: "Failed",
+        error: {
+          message: "User not found",
+          field: "userId",
+        },
+      });
+      return;
+    }
+
+    // Periksa apakah file sebelumnya bukan default.png
+    if (user.foto_profile && user.foto_profile !== "default_PP.png") {
+      const oldImagePath = path.join(
+        __dirname,
+        "../assets/img/profile/user",
+        user.foto_profile
+      );
+      if (fs.existsSync(oldImagePath)) {
+        fs.unlinkSync(oldImagePath); // Hapus file lama
+      }
     }
 
     let updateData: any = { foto_profile };

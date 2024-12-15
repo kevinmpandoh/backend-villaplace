@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import Owner from "../models/ownerModel";
 import bcrypt from "bcrypt";
 import { Villa } from "../models/villaModel";
+import fs from "fs";
+import path from "path";
 
 //! Get all owners
 export const getAllOwners = async (
@@ -268,6 +270,30 @@ export const uploadProfileImagesOwner = async (
     }
 
     const foto_profile = req.file?.filename;
+
+    const owner = await Owner.findById(ownerId);
+    if (!owner) {
+      res.status(404).json({
+        status: "Failed",
+        error: {
+          message: "User not found",
+          field: "userId",
+        },
+      });
+      return;
+    }
+
+    // Periksa apakah file sebelumnya bukan default.png
+    if (owner.foto_profile && owner.foto_profile !== "default_PP.png") {
+      const oldImagePath = path.join(
+        __dirname,
+        "../assets/img/profile/owner",
+        owner.foto_profile
+      );
+      if (fs.existsSync(oldImagePath)) {
+        fs.unlinkSync(oldImagePath); // Hapus file lama
+      }
+    }
 
     const updatedOwner = await Owner.findByIdAndUpdate(
       ownerId,

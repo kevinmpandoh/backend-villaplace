@@ -10,7 +10,7 @@ const ownerSeeder = async () => {
     // Data user baru untuk diinsert
     const owners = [
       {
-        nama: "Kevin",
+        nama: "Kevin Owner",
         email: "kevin@gmail.com",
         password: await bcrypt.hash("password", 10), // Hashing password
         no_telepon: "0812345637890",

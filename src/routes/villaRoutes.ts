@@ -33,7 +33,7 @@ router.get("/admin/", verifyAdmin, getAllVillasAdmin);
 
 router.get("/:id", getVillaById);
 router.post("/", verifyOwner, createVilla);
-router.put("/:id", verifyOwner, updateVilla);
+router.put("/:id", verifyAdminOwner, updateVilla);
 router.delete("/:id", verifyAdminOwner, deleteVilla);
 router.post(
   "/:id/upload-villa",

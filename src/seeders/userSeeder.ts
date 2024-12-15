@@ -27,6 +27,18 @@ const userSeeder = async () => {
         password: await bcrypt.hash("password", 10),
         no_telepon: "0815234517892",
       },
+      {
+        nama: "Azkal",
+        email: "azkal@gmail.com",
+        password: await bcrypt.hash("password", 10),
+        no_telepon: "0812345678901",
+      },
+      {
+        nama: "Maria",
+        email: "maria@gmail.com",
+        password: await bcrypt.hash("password", 10),
+        no_telepon: "0812345678902",
+      },
     ];
 
     // Menambahkan data user baru ke database
