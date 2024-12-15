@@ -25,8 +25,4 @@ router.use("/ulasan", ulasanRoutes);
 router.use("/favorite", favoriteRoutes);
 router.use("/admin", adminRoutes);
 
-router.get("/", (req, res) => {
-  res.send("Hello from express");
-});
-
 module.exports = router;
