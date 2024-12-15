@@ -6,6 +6,7 @@ const pembayaranRoutes = require("./pembayaranRoutes");
 import authRoutes from "./authRoutes";
 import userRoutes from "./userRoutes";
 import ownerRoutes from "./ownerRoutes";
+import route from "./pesananRoutes";
 const ulasanRoutes = require("./ulasanRoutes");
 const favoriteRoutes = require("./favoriteRoutes");
 const adminRoutes = require("./adminRoutes");
@@ -23,5 +24,9 @@ router.use("/owner", ownerRoutes);
 router.use("/ulasan", ulasanRoutes);
 router.use("/favorite", favoriteRoutes);
 router.use("/admin", adminRoutes);
+
+router.get("/", (req, res) => {
+  res.send("Hello from express");
+});
 
 module.exports = router;
