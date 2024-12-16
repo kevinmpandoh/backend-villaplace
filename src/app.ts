@@ -66,7 +66,7 @@ router.get("/", (req: Request, res: Response) => {
 app.use((req, res) => {
   res.status(404).json({
     status: "Failed",
-    message: "Resource not found",
+    message: "Resource tidak ditemukan",
   });
 });
 
