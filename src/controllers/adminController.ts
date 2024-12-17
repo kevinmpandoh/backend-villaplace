@@ -214,11 +214,18 @@ const adminController = {
       const { nama, email } = req.body;
       const updateData: any = { nama, email };
 
+      const errors: { [key: string]: string } = {};
+
       const emailExists = await Admin.findOne({ email, _id: { $ne: id } });
       if (emailExists) {
+        errors.email = "Email sudah digunakan oleh admin lain";
+      }
+
+      if (Object.keys(errors).length > 0) {
         res.status(400).json({
-          status: "error",
-          message: "Email already exists for another admin",
+          status: "Failed",
+          message: "Validasi gagal",
+          errors, // Mengirim semua error yang ditemukan dalam objek
         });
         return;
       }
