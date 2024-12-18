@@ -159,6 +159,7 @@ const adminController = {
           status: "error",
           message: "Admin not found",
         });
+        return;
       }
 
       res.status(200).json({
@@ -264,6 +265,8 @@ const adminController = {
           status: "error",
           message: "Admin not found",
         });
+
+        return;
       }
       res.status(200).json({
         status: "success",
