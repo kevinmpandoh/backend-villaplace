@@ -150,10 +150,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       { expiresIn: "1h" }
     );
 
-    res.cookie("tokenUser", token, {
-      sameSite: "none",
-      secure: true,
-    });
+    res.cookie("tokenUser", token);
 
     res.json({
       status: "Success",
