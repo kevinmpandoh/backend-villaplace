@@ -27,14 +27,7 @@ app.use(cookieParser());
 // Middleware
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Izinkan permintaan tanpa origin (misalnya, Postman atau server-side)
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error(`Not allowed by CORS. Origin: ${origin}`));
-      }
-    },
+    origin: "https://frontend-villaplace.vercel.app",
     credentials: true, // Perlu jika menggunakan cookie
   })
 );
