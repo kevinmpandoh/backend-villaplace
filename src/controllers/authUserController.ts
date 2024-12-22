@@ -155,7 +155,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       secure: true, // Hanya gunakan HTTPS
       sameSite: "none", // Izinkan lintas domain
       maxAge: 24 * 60 * 60 * 1000, // 1 hari
-      domain: "https://frontend-villaplace.vercel.app/", // Ganti dengan domain Anda
+      // domain: "https://frontend-villaplace.vercel.app/", // Ganti dengan domain Anda
     });
 
     res.json({
