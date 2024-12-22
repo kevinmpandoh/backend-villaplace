@@ -27,7 +27,7 @@ app.use(cookieParser());
 // Middleware
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: "https://frontend-villaplace.vercel.app/",
     credentials: true,
   })
 );
