@@ -27,13 +27,7 @@ app.use(cookieParser());
 // Middleware
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true); // Izinkan akses
-      } else {
-        callback(new Error("Not allowed by CORS")); // Tolak akses
-      }
-    },
+    origin: allowedOrigins,
     credentials: true,
   })
 );
