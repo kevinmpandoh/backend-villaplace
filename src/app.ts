@@ -12,9 +12,10 @@ import "./schedulers/updateStatusPembayaran";
 
 const router = require("./routes");
 const allowedOrigins = [
-  "http://localhost:3000",
-  "https://frontend-villaplace.vercel.app/",
+  "http://localhost:3000", // Pengembangan lokal
+  "https://frontend-villaplace.vercel.app", // Produksi
 ];
+
 
 // Load environment variables
 dotenv.config();
@@ -27,8 +28,15 @@ app.use(cookieParser());
 // Middleware
 app.use(
   cors({
-    origin: "https://frontend-villaplace.vercel.app/",
-    credentials: true,
+    origin: function (origin, callback) {
+      // Izinkan permintaan tanpa origin (misalnya, Postman atau server-side)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Not allowed by CORS. Origin: ${origin}`));
+      }
+    },
+    credentials: true, // Perlu jika menggunakan cookie
   })
 );
 app.use(morgan("dev"));
@@ -48,6 +56,11 @@ app.use(
   "/images/owner-profile",
   express.static(path.join(__dirname, "./assets/img/profile/owner"))
 );
+
+app.use((req, res, next) => {
+  console.log("CORS Request Origin:", req.headers.origin);
+  next();
+});
 
 // Routes
 app.use("/api", router);
