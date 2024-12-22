@@ -154,7 +154,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
       secure: true, // Hanya gunakan HTTPS
       sameSite: false, // Atur SameSite: Strict
       maxAge: 24 * 60 * 60 * 1000, // 1 hari
-      domain: "vercel.app",
+      domain: ".vercel.app",
     });
 
     res.json({
