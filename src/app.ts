@@ -16,7 +16,6 @@ const allowedOrigins = [
   "https://frontend-villaplace.vercel.app", // Produksi
 ];
 
-
 // Load environment variables
 dotenv.config();
 
@@ -46,15 +45,15 @@ app.use(express.urlencoded({ extended: true }));
 // Set folder 'uploads' sebagai folder statis agar bisa diakses melalui URL
 app.use(
   "/images/user-profile",
-  express.static(path.join(__dirname, "./assets/img/profile/user"))
+  express.static(path.join(__dirname, "../public//img/profile/user"))
 );
 app.use(
   "/images/villa",
-  express.static(path.join(__dirname, "./assets/img/villa"))
+  express.static(path.join(__dirname, "../public/img/villa"))
 );
 app.use(
   "/images/owner-profile",
-  express.static(path.join(__dirname, "./assets/img/profile/owner"))
+  express.static(path.join(__dirname, "../public/img/profile/owner"))
 );
 
 app.use((req, res, next) => {
