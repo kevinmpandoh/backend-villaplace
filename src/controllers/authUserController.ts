@@ -152,9 +152,9 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 
     res.cookie("tokenUser", token, {
       secure: true, // Hanya gunakan HTTPS
-      sameSite: "none", // Izinkan lintas domain
+      sameSite: false, // Atur SameSite: Strict
       maxAge: 24 * 60 * 60 * 1000, // 1 hari
-      domain: "frontend-villaplace.vercel.app",
+      domain: "vercel.app",
     });
 
     res.json({
