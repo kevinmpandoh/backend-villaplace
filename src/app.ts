@@ -13,7 +13,7 @@ import "./schedulers/updateStatusPembayaran";
 const router = require("./routes");
 const allowedOrigins = [
   "http://localhost:3000",
-  "https://your-production-domain.com",
+  "https://frontend-villaplace.vercel.app/",
 ];
 
 // Load environment variables
