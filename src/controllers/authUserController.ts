@@ -152,7 +152,7 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
 
     res.cookie("tokenUser", token, {
       secure: true, // Hanya gunakan HTTPS
-      sameSite: "lax", // Atur SameSite: Strict
+      sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 hari
     });
 
