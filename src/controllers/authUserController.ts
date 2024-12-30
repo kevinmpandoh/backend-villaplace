@@ -153,7 +153,6 @@ export const loginUser = async (req: Request, res: Response): Promise<void> => {
     res.cookie("tokenUser", token, {
       secure: true,
       sameSite: "lax",
-      maxAge: 24 * 60 * 60 * 1000, // 1 hari
     });
 
     res.json({
