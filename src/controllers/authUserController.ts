@@ -176,7 +176,7 @@ export const logoutUser = async (
 ): Promise<void> => {
   try {
     res.clearCookie("tokenUser");
-    // Menghapus token di klien
+
     res.json({
       status: "Success",
       message: "Logout berhasil",
