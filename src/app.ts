@@ -14,6 +14,7 @@ const router = require("./routes");
 const allowedOrigins = [
   "http://localhost:3000", // Pengembangan lokal
   "https://frontend-villaplace.vercel.app", // Produksi
+  "https://villa-place.vercel.app", // Produksi
 ];
 
 // Load environment variables
